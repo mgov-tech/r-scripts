@@ -1,4 +1,7 @@
 
 data/
 
+.dta
+.xlsx
+.DS_Store
 .Rproj

@@ -1,11 +1,11 @@
 library(glmnet)
 
-# No scientif notation
+# No scientific notation
 options(scipen=999)
 
 # Main paths
 main.path="/Users/guicoelhonetto/Documents/GitHub/r-scripts/"
-data.path=paste0(main.path,"data/")
+data.path=paste0("/Users/guicoelhonetto/Dropbox/","data/")
 fig.path=paste0(main.path,"fig/")
 
 # Read data
@@ -36,16 +36,8 @@ png(filename=paste0(fig.path,"cvlasso.png"))
 plot(cvlasso)
 dev.off()
 
+db.sms=db.sms
 
-
-
-
-
-
-
-
-
-
-
-
-
+ggplot(data=db.sms.most.frequent) + 
+  stat_summary_bin(aes(x=substring(question,0,30),y=nchar),fun.y='mean', geom='point') + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))

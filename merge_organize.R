@@ -7,7 +7,7 @@ options(scipen=999)
 
 # Main paths
 main.path="/Users/guicoelhonetto/Documents/GitHub/r-scripts/"
-data.path=paste0(main.path,"data/")
+data.path=paste0("/Users/guicoelhonetto/Dropbox/","data/")
 
 ### Read data
 
@@ -31,7 +31,9 @@ db.sms=read_excel(paste0(data.path,"interacoes_smsescola.xlsx"))
 
 # Change "Resposta extra" to preceeding question
 db.sms$extra_ans=ifelse(db.sms$question=="Resposta extra",1,0)
+while(length(which(db.sms$question=="Resposta extra"))>0){
 db.sms[which(db.sms$question=="Resposta extra"),]$question=db.sms[which(db.sms$question=="Resposta extra")-1,]$question
+}
 
 ## Drop unnecessary data
 
@@ -80,7 +82,7 @@ db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
 # Presence of "SIM"
 db.sms$ans.yes=ifelse(grepl("sim",db.sms$answer)==T,1,0)
 
-# 
+# Keep created variables
 created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
 
 ### Collapse sms dataset
@@ -105,6 +107,5 @@ dataset=dataset1
 lasso.vars=grep(paste0(created.vars,collapse="|"),names(dataset),value=T)
 
 save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
-
 
 

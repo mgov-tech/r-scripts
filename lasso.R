@@ -4,7 +4,8 @@ library(glmnet)
 options(scipen=999)
 
 # Main paths
-main.path="/Users/guicoelhonetto/Documents/GitHub/r-scripts/"
+source('config.R')
+
 data.path=paste0(main.path,"data/")
 fig.path=paste0(main.path,"fig/")
 

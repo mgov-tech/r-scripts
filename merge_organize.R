@@ -2,12 +2,10 @@ library(readstata13)
 library(readxl)
 library(dplyr)
 
+source('config.R')
+
 # No scientif notation
 options(scipen=999)
-
-# Main paths
-main.path="/Users/guicoelhonetto/Documents/GitHub/r-scripts/"
-data.path=paste0(main.path,"data/")
 
 ### Read data
 

@@ -5,9 +5,7 @@ library(dplyr)
 # No scientif notation
 options(scipen=999)
 
-# Main paths
-main.path="/Users/guicoelhonetto/Documents/GitHub/r-scripts/"
-data.path=paste0("/Users/guicoelhonetto/Dropbox/","data/")
+source('config.R')
 
 ### Read data
 

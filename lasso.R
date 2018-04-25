@@ -1,4 +1,5 @@
 library(glmnet)
+library(ggplot2)
 
 # No scientific notation
 options(scipen=999)
@@ -7,9 +8,10 @@ source('config.R')
 fig.path=paste0(main.path,"fig/")
 
 # Read data
+outcome = 'boletim_mat'
 
 load(paste0(data.path,"dataset.RData"))
-dataset.lasso=dataset[complete.cases(dataset[,c("perc_freq_lp",lasso.vars)]),]
+dataset.lasso=dataset[complete.cases(dataset[,c(outcome,lasso.vars)]),]
 
 # Residualize data
 
@@ -22,7 +24,7 @@ resid.fe=function(x){
 # Lasso
 
 x=as.matrix(dataset.lasso[,lasso.vars])
-y=as.matrix(dataset.lasso$perc_freq_lp)
+y=as.matrix(dataset.lasso[,outcome])
 
 # Lasso with cross-validation
 
@@ -34,8 +36,6 @@ png(filename=paste0(fig.path,"cvlasso.png"))
 plot(cvlasso)
 dev.off()
 
-db.sms=db.sms
-
-ggplot(data=db.sms.most.frequent) + 
+ggplot(data=db.sms[db.sms$question %in% unique(db.sms$question)[1:10],]) + 
   stat_summary_bin(aes(x=substring(question,0,30),y=nchar),fun.y='mean', geom='point') + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))

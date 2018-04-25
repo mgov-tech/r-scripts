@@ -78,7 +78,9 @@ db.sms$nchar=nchar(db.sms$answer)
 db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
 
 # Presence of "SIM"
-db.sms$ans.yes=ifelse(grepl("sim",db.sms$answer)==T,1,0)
+db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
+# case sens
+# assim / 
 
 # Keep created variables
 created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
@@ -87,7 +89,7 @@ created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
 
 # Create bimester variable
 db.sms$t=ifelse(db.sms$semana%in%1:9,3,NA)
-db.sms$t=ifelse(db.sms$semana%in%10:18,3,db.sms$t)
+db.sms$t=ifelse(db.sms$semana%in%10:18,4,db.sms$t)
 
 # Change name
 names(db.sms)[names(db.sms)=="semana"]="week"

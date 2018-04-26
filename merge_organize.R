@@ -53,7 +53,7 @@ phone.ra$phone=as.numeric(substring(phone.ra$phone,2,nchar(phone.ra$phone)))
 dataset1=merge(dataset1,phone.ra,by="ra",all.x=T)
 
 # Merge dataset2 and dataset1
-dataset1=merge(dataset1,dataset2,by="ra",all.x=T)
+dataset=merge(dataset1,dataset2,by="ra",all.x=T)
 
 # Drop obs
 
@@ -61,8 +61,9 @@ dataset1=merge(dataset1,dataset2,by="ra",all.x=T)
 # eduq_time - Tratamento Engajamento - Hora do dia (time)
 # eduq_feed - Tratamento Engajamento - Feedback (interactivity)
 
-dataset1=dataset1[dataset1$t%in%c(3,4),]
-dataset1=dataset1[dataset1$eduq_feed==1,]
+dataset=dataset[dataset$t%in%c(3,4),]
+dataset.temp=dataset
+dataset=dataset[dataset$eduq_feed==1,]
 
 ### Create sms variables
 
@@ -70,6 +71,7 @@ ncol.oldvars=ncol(db.sms)
 
 # Number of characters
 db.sms$nchar=nchar(db.sms$answer)
+db.sms[is.na(db.sms$nchar),]$nchar=0
 
 # Punctuation
 #db.sms$punct=grepl("[[:punct:]]",db.sms$answer)
@@ -79,33 +81,57 @@ db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
 
 # Presence of "SIM"
 db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
-# case sens
-# assim / 
 
 # Keep created variables
 created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
 
 ### Collapse sms dataset
 
-# Create bimester variable
-db.sms$t=ifelse(db.sms$semana%in%1:9,3,NA)
-db.sms$t=ifelse(db.sms$semana%in%10:18,4,db.sms$t)
-
-# Change name
+# Change names
 names(db.sms)[names(db.sms)=="semana"]="week"
+names(dataset)[names(dataset)=="t"]="bimester"
+
+# Create bimester variable
+db.sms$bimester=ifelse(db.sms$week%in%1:9,3,NA)
+db.sms$bimester=ifelse(db.sms$week%in%10:18,4,db.sms$bimester)
 
 # Collapse
-dataset.sms=db.sms %>% group_by(phone,t) %>% summarise_at(c("week",created.vars),funs(mean,max,sum,min))
+dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,sum,min))
+dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean,min,max))
+names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
+
+dataset.sms=left_join(dataset.sms,dataset.sms.week)
 
 # Merge dataset1 and db.sms
 
-dataset1=merge(dataset1,dataset.sms,by=c("phone","t"),all.x=T)
+dataset=merge(dataset,dataset.sms,by=c("phone","bimester"),all.x=T)
+#dataset[]
 
-# Rename dataset1
-dataset=dataset1
+# Lasso variables
 
 lasso.vars=grep(paste0(created.vars,collapse="|"),names(dataset),value=T)
+dataset[,lasso.vars]=lapply(dataset[,lasso.vars], function(x) x[is.na(x)]=0)
 
 save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
+
+# Data analysis
+
+db.sms$cod_question=as.factor(as.numeric(as.factor(db.sms$question)))
+db.sms$cod_question=factor(db.sms$cod_question,levels=names(summary(db.sms$cod_question)))
+db.sms.mfq=db.sms[db.sms$cod_question%in%names(summary(db.sms$cod_question)[2:15]),]
+
+ggplot(data=db.sms.mfq) + 
+  stat_summary_bin(aes(x=substring(question,0,30),y=nchar),fun.y='length', geom='bar') +
+  stat_summary_bin(aes(x=substring(question,0,30),y=nchar),fun.y='mean', geom='point') +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+dataset1.clean=dataset1[with(dataset1,paste0(eduq_freq,eduq_time,eduq_time_altern,eduq_feed)!="0000"),]
+
+ggplot(data=dataset1.clean) +
+  geom_freqpoly(aes(boletim_mat, ..density..,colour=as.factor(paste0(eduq_freq,eduq_time,eduq_time_altern,eduq_feed)=="9999")),bins=11) +
+  scale_x_continuous(breaks=0:10) +
+  theme(legend.position="none")
+
+
 
 

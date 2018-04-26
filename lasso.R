@@ -33,6 +33,8 @@ y=as.matrix(dataset.lasso[,outcome[2]])
 # Lasso with cross-validation
 
 lambda.grid=exp(seq(-12,0,length.out=100))
+
+lasso=glmnet(x,y,lambda = lambda.grid)
 cvlasso=cv.glmnet(x,y,nfolds=5,lambda = lambda.grid)
 
 # Save plot

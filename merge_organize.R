@@ -109,8 +109,9 @@ dataset=merge(dataset,dataset.sms,by=c("phone","bimester"),all.x=T)
 
 # Lasso variables
 
-lasso.vars=grep(paste0(created.vars,collapse="|"),names(dataset),value=T)
-dataset[,lasso.vars]=lapply(dataset[,lasso.vars], function(x) x[is.na(x)]=0)
+lasso.vars=grep(paste0(c(created.vars,"week"),collapse="|"),names(dataset),value=T)
+
+dataset = dataset %>% mutate_at(lasso.vars,funs(replace(., which(is.na(.)), 0)))
 
 save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
 

@@ -129,7 +129,7 @@ ggplot(data=db.sms.mfq) +
 dataset1.clean=dataset1[with(dataset1,paste0(eduq_freq,eduq_time,eduq_time_altern,eduq_feed)!="0000"),]
 
 ggplot(data=dataset1.clean) +
-  geom_freqpoly(aes(boletim_mat, ..density..,colour=as.factor(paste0(eduq_freq,eduq_time,eduq_time_altern,eduq_feed)=="9999")),bins=11) +
+  geom_histogram(aes(boletim_mat, fill=as.factor(paste0(eduq_freq,eduq_time,eduq_time_altern,eduq_feed)=="9999")),bins=11) +
   scale_x_continuous(breaks=0:10) +
   theme(legend.position="none")
 

@@ -1,5 +1,6 @@
 library(glmnet)
 library(ggplot2)
+library(lfe)
 
 # No scientific notation
 options(scipen=999)
@@ -25,16 +26,24 @@ resid.fe=function(x){
   return(resid) 
 }
 
-# Lasso
+bimester=dataset.lasso$bimester
 
-x=as.matrix(dataset.lasso[,lasso.vars])
-y=as.matrix(dataset.lasso[,outcome[2]])
+if(residualize==F){
+  x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
+  y=resid.fe(dataset.lasso[,outcome[2]])
+} else {
+  x=as.matrix(dataset.lasso[,lasso.vars])
+  y=dataset.lasso[,outcome[2]]
+}
+
+# Estimation
 
 # Lasso with cross-validation
 
 lambda.grid=exp(seq(-12,0,length.out=100))
 
 lasso=glmnet(x,y,lambda = lambda.grid)
+set.seed(1234)
 cvlasso=cv.glmnet(x,y,nfolds=5,lambda = lambda.grid)
 
 # Save plot

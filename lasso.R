@@ -1,5 +1,6 @@
 library(glmnet)
 library(ggplot2)
+library(plyr)
 library(lfe)
 
 # No scientific notation
@@ -21,14 +22,14 @@ dataset.lasso=dataset[complete.cases(dataset[,c(outcome[2],lasso.vars)]),]
 # Residualize data
 
 resid.fe=function(x){
-  reg=felm(x ~ 0 | bimester)
+  reg=felm(x ~ 0 | fix.effect)
   resid=reg$resid
   return(resid) 
 }
 
-bimester=dataset.lasso$bimester
+fix.effect=dataset.lasso$estrato_escola
 
-if(residualize==F){
+if(F){
   x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
   y=resid.fe(dataset.lasso[,outcome[2]])
 } else {
@@ -47,16 +48,21 @@ set.seed(1234)
 cvlasso=cv.glmnet(x,y,nfolds=5,lambda = lambda.grid)
 
 # Save plot
-png(filename=paste0(fig.path,"cvlasso.png"))
+#png(filename=paste0(fig.path,"cvlasso.png"))
 plot(cvlasso)
-dev.off()
+#dev.off()
 
 # Get proxy
 
 lambda.str=cvlasso$lambda.min
 feat.select=rownames(as.matrix(coef(cvlasso,lambda.str)))[as.matrix(coef(cvlasso,lambda.str))!=0]
 
-dataset.lasso[,paste0(outcome[2],"_fit")]=predict(cvlasso,newx=x,s=lambda.str,type="response")
+dataset.lasso[,paste0(outcome[2],"_fit")]=as.numeric(predict(cvlasso,newx=x,s=lambda.str,type="response"))
+#dataset.lasso=rbind.fill(dataset.lasso,dataset[dataset$eduq_feed==9,])
+
+dataset=merge(dataset,dataset.lasso[,c("phone","bimester",paste0(outcome[2],"_fit"))],by=c("phone","bimester"),all.x=T)
+dataset[,paste0(outcome[2],"_fit")]=ifelse(dataset$eduq_feed==9 & !is.na(dataset[,paste0(outcome[2])]),coef(cvlasso,"lambda.min")[1,],dataset[,paste0(outcome[2],"_fit")])
+dataset=dataset[!is.na(dataset[,outcome[2]]),]
 
 # Save datasets for trees
 

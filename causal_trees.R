@@ -18,7 +18,7 @@ treat=paste0("v",1:24)
 treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9),paste0("v",x)]==1,na.rm=T))>0]
 
 
-opcp.fit=list()
+opfit=list()
 # Formula and outcome
 
 #fmla=paste0(outcome.fit[1]," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
@@ -40,13 +40,13 @@ for(i in treat.fit){
                     propensity = 0.8)
   
   opcp = tree$cptable[, 1][which.min(tree$cptable[,4])]
-  opcp.fit[[i]] = prune(tree, cp = opcp)
+  opfit[[i]] = prune(tree, cp = opcp)
   
   
 }
 
 #png(filename=paste0("/Users/guicoelhonetto/Documents/Projetos/Reg_Trees/",outcomes[i],".png"),width=480,height=480)
-rpart.plot(opcp.fit[[1]],           
+rpart.plot(opfit[[1]],           
            type = 1, 
            extra=101, 
            under=T, 
@@ -54,3 +54,27 @@ rpart.plot(opcp.fit[[1]],
            box.palette=0)
 #dev.off()
 
+#### Teste: Como tirar
+
+i=treat.fit[1]
+dt.temp=dataset[!is.na(dataset[,i]),]
+
+tree = causalTree(fmla, 
+                  data = dt.temp, treatment = dt.temp[,i],
+                  split.Rule = "TOT", 
+                  cv.option = "fit", 
+                  minsize =20, 
+                  cv.Honest = T, 
+                  split.Bucket = T, 
+                  xval = 10, 
+                  propensity = 0.8)
+
+opcp = tree$cptable[, 1][which.min(tree$cptable[,4])]
+opfit = prune(tree, cp = opcp)
+
+rpart.plot(opfit,           
+           type = 1, 
+           extra=101, 
+           under=T, 
+           digits=2, 
+           box.palette=0)

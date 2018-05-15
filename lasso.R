@@ -27,9 +27,9 @@ resid.fe=function(x){
   return(resid) 
 }
 
-fix.effect=dataset.lasso$estrato_escola
+fix.effect=dataset.lasso$bimester
 
-if(F){
+if(T){
   x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
   y=resid.fe(dataset.lasso[,outcome[2]])
 } else {

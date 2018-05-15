@@ -23,8 +23,8 @@ dataset$R_real=NA
 dataset$R_proxy=NA
 
 for(i in treat.fit){
-   dataset$R_real=ifelse(dataset[,i]==1,dataset[,paste0(i,"_main_effect")],NA)
-   dataset$R_proxy=ifelse(dataset[,i]==1,dataset[,paste0(i,"_main_effect_fit")],NA)
+   dataset$R_real=ifelse(dataset[,i]==1,dataset[,paste0(i,"_main_effect")],dataset$R_real)
+   dataset$R_proxy=ifelse(dataset[,i]==1,dataset[,paste0(i,"_main_effect_fit")],dataset$R_proxy)
 }
 
 dataset$R_real_max=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max)

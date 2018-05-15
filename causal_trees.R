@@ -137,7 +137,7 @@ for(i in seq_along(groups)){
 } 
 }
 
-save(dataset,"data_final.RData")
+save(dataset,paste0(data.path,"data_final.RData"))
 
 rpart.plot(opfit,           
            type = 1, 

@@ -10,8 +10,10 @@ fig.path=paste0(main.path,"fig/")
 
 load(paste0(data.path,"data_tree.RData"))
 
-# Chosen outcomes
-outcome = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
+# Outcomes
+outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
+
+chosen.outcome=outcomes[1]
 
 # Choose variations of treatments
 treat=paste0("v",1:24)
@@ -88,7 +90,7 @@ find.groups=function(branch){
 groups=list()
 for(k in c("","_fit")){
 
-fmla=paste0(outcome[1],k," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
+fmla=paste0(chosen.outcome,k," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
   
   
 for(i in treat.fit){

@@ -10,14 +10,16 @@ options(scipen=999)
 source('config.R')
 fig.path=paste0(main.path,"fig/")
 
-# Outcome of choice
+# Outcomes
 
-outcome = c("perc_freq_lp","boletim_mat","perc_freq_mat","boletim_lp")
+outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
+
+chosen.outcome=outcomes[1]
 
 # Read data
 
 load(paste0(data.path,"dataset.RData"))
-dataset.lasso=dataset[complete.cases(dataset[,c(outcome[2],lasso.vars)]),]
+dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 
 # Residualize data
 
@@ -31,10 +33,10 @@ fix.effect=dataset.lasso$bimester
 
 if(T){
   x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
-  y=resid.fe(dataset.lasso[,outcome[2]])
+  y=resid.fe(dataset.lasso[,chosen.outcome])
 } else {
   x=as.matrix(dataset.lasso[,lasso.vars])
-  y=dataset.lasso[,outcome[2]]
+  y=dataset.lasso[,chosen.outcome]
 }
 
 # Estimation
@@ -57,12 +59,12 @@ plot(cvlasso)
 lambda.str=cvlasso$lambda.min
 feat.select=rownames(as.matrix(coef(cvlasso,lambda.str)))[as.matrix(coef(cvlasso,lambda.str))!=0]
 
-dataset.lasso[,paste0(outcome[2],"_fit")]=as.numeric(predict(cvlasso,newx=x,s=lambda.str,type="response"))
+dataset.lasso[,paste0(chosen.outcome,"_fit")]=as.numeric(predict(cvlasso,newx=x,s=lambda.str,type="response"))
 #dataset.lasso=rbind.fill(dataset.lasso,dataset[dataset$eduq_feed==9,])
 
-dataset=merge(dataset,dataset.lasso[,c("phone","bimester",paste0(outcome[2],"_fit"))],by=c("phone","bimester"),all.x=T)
-dataset[,paste0(outcome[2],"_fit")]=ifelse(dataset$eduq_feed==9 & !is.na(dataset[,paste0(outcome[2])]),coef(cvlasso,"lambda.min")[1,],dataset[,paste0(outcome[2],"_fit")])
-dataset=dataset[!is.na(dataset[,outcome[2]]),]
+dataset=merge(dataset,dataset.lasso[,c("phone","bimester",paste0(chosen.outcome,"_fit"))],by=c("phone","bimester"),all.x=T)
+dataset[,paste0(chosen.outcome,"_fit")]=ifelse(dataset$eduq_feed==9 & !is.na(dataset[,paste0(chosen.outcome)]),coef(cvlasso,"lambda.min")[1,],dataset[,paste0(chosen.outcome,"_fit")])
+dataset=dataset[!is.na(dataset[,chosen.outcome]),]
 
 # Save datasets for trees
 

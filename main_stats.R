@@ -10,9 +10,6 @@ fig.path=paste0(main.path,"fig/")
 
 load(paste0(data.path,"data_final.RData"))
 
-# Chosen outcomes
-outcome = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
-
 # Choose variations of treatments
 treat=paste0("v",1:24)
 treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9),paste0("v",x)]==1,na.rm=T))>0]

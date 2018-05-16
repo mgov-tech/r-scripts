@@ -22,13 +22,13 @@ load(paste0(data.path,"dataset.RData"))
 dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 
 # Keep variables without residualization for prediction
-x.old=x
-y.old=y
+x.old=as.matrix(dataset.lasso[,lasso.vars])
+y.old=dataset.lasso[,chosen.outcome]
 
 # Residualize data
 
-resid.fe=function(x){
-  reg=felm(x ~ 0 | fix.effect)
+resid.fe=function(z){
+  reg=felm(z ~ 0 | fix.effect)
   resid=reg$resid
   return(resid) 
 }

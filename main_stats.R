@@ -24,7 +24,7 @@ for(i in treat.fit){
    dataset$R_proxy=ifelse(dataset[,i]==1,dataset[,paste0(i,"_main_effect_fit")],dataset$R_proxy)
 }
 
-dataset$R_real_max=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max,na.rm=T)
+dataset$R_real_max=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max)
 dataset$R_proxy_max=apply(dataset[,grep("group_effect_fit",names(dataset),fixed=T,value=T)],1,max,na.rm=T)
 
 # Compute statistics

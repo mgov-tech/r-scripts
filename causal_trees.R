@@ -110,6 +110,15 @@ for(i in treat.fit){
   opcp = tree$cptable[, 1][which.min(tree$cptable[,4])]
   opfit = prune(tree, cp = opcp)
   
+  png(filename=paste0(fig.path,i,k,".png"),width=480,height=480)
+  rpart.plot(opfit,           
+             type = 1, 
+             extra=101, 
+             under=T, 
+             digits=2, 
+             box.palette=0)
+  dev.off()
+  
   branches=find.branches(opfit)
   
   tree.groups=list()
@@ -141,10 +150,5 @@ for(i in seq_along(groups)){
 
 save(dataset,file=paste0(data.path,"data_final.RData"))
 
-rpart.plot(opfit,           
-           type = 1, 
-           extra=101, 
-           under=T, 
-           digits=2, 
-           box.palette=0)
+
 

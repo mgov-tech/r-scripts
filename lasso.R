@@ -21,6 +21,10 @@ chosen.outcome=outcomes[1]
 load(paste0(data.path,"dataset.RData"))
 dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 
+# Keep variables without residualization for prediction
+x.old=x
+y.old=y
+
 # Residualize data
 
 resid.fe=function(x){
@@ -59,7 +63,7 @@ plot(cvlasso)
 lambda.str=cvlasso$lambda.min
 feat.select=rownames(as.matrix(coef(cvlasso,lambda.str)))[as.matrix(coef(cvlasso,lambda.str))!=0]
 
-dataset.lasso[,paste0(chosen.outcome,"_fit")]=as.numeric(predict(cvlasso,newx=x,s=lambda.str,type="response"))
+dataset.lasso[,paste0(chosen.outcome,"_fit")]=as.numeric(predict(cvlasso,newx=x.old,s=lambda.str,type="response"))
 #dataset.lasso=rbind.fill(dataset.lasso,dataset[dataset$eduq_feed==9,])
 
 dataset=merge(dataset,dataset.lasso[,c("phone","bimester",paste0(chosen.outcome,"_fit"))],by=c("phone","bimester"),all.x=T)

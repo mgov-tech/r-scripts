@@ -4,7 +4,6 @@ library(stringr)
 
 # Source personal configurations
 source('config.R')
-fig.path=paste0(main.path,"fig/")
 
 # Load data
 

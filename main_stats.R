@@ -69,15 +69,19 @@ DELTA_AI <- foreach(i=1:1000, .combine=rbind) %dopar% {
   
   rea=matrix(sample(names(prob),size=nrow(dataset)*weeks,replace=T,prob=prob),nrow(dataset),weeks)
   
-  R_simul_avg=sapply(1:nrow(dataset), function(x) mean(dataset[,paste0(rea[x,],"_group_effect")],na.rm=T))
+  R_simul_avg=sapply(1:nrow(dataset), function(x) mean(as.numeric(dataset[x,paste0(rea[x,],"_group_effect")]),na.rm=T))
   
   delta=mean(R_simul_avg-dataset$R_oracle,na.rm=T)
   
   delta
+  
 }
-
 stopCluster(cl)
+save(DELTA_AI,file=paste0(data.path,"delta_ai.R"))
 
+Delta_ai=mean(DELTA_AI)
+
+quality=Delta_ai/Delta_oracle
 print(quality)
 
 

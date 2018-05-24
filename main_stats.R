@@ -3,10 +3,12 @@ library(causalTree)
 library(stringr)
 library(foreach)
 library(doParallel)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
 
 # Source personal configurations
 source('config.R')
-fig.path=paste0(main.path,"fig/")
 
 # Load data
 
@@ -27,10 +29,12 @@ treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9)
 # Create variables
 
 dataset$R_oracle=NA
+dataset$R_oracle_group=NA
 dataset$R_proxy=NA
 
 for(i in treat.fit){
   dataset$R_oracle =ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_main_effect")],dataset$R_oracle)
+  dataset$R_oracle_group =ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_group_effect")],dataset$R_oracle_group)
   dataset$R_proxy=ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_main_effect_fit")],dataset$R_proxy)
 }
 
@@ -55,7 +59,7 @@ predicted_impact=mean(dataset$postlasso,na.rm=T)-mean(dataset[dataset$treat_cod=
 
 # Re-assingment probabilities
 
-prob=main_effect_fit/sum(main_effect_fit)
+prob=exp(main_effect_fit)/sum(exp(main_effect_fit))
 
 ### Simulation
 
@@ -83,5 +87,30 @@ Delta_ai=mean(DELTA_AI)
 
 quality=Delta_ai/Delta_oracle
 print(quality)
+
+# Graphs
+
+ggplot(data=as.data.frame(DELTA_AI),aes(V1)) + 
+  geom_histogram() +
+  xlab("Delta_AI") +
+  ggtitle("Distribution of Delta_AI (N = 1000)") +
+  theme_minimal()
+ggsave(paste0(fig.path,"delta_ai_dist.png"))
+
+table = dataset[dataset$treat_cod%in%as.numeric(substring(treat.fit,2,3)),] %>% 
+  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group==R_oracle_max,na.rm = T)/length(R_oracle_max))
+
+ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
+  geom_col() +
+  xlab("Variation") +
+  ylab("Proportion") +
+  theme_minimal()
+ggsave(paste0(fig.path,"v_max.png"))
+
+
+
+
+
+
 
 

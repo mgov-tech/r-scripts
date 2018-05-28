@@ -62,7 +62,6 @@ dataset1=merge(dataset1,phone.ra,by="ra",all.x=T)
 # Merge dataset2 and dataset1
 dataset=merge(dataset1,dataset2,by="ra",all.x=T)
 
-
 # Drop obs
 
 # eduq_freq - Tratamento Engajamento - Frequencia (frequency)

@@ -1,6 +1,7 @@
 library(readstata13)
 library(readxl)
 library(dplyr)
+library(genderBR)
 
 # No scientif notation
 options(scipen=999)
@@ -84,6 +85,35 @@ db.sms[is.na(db.sms$nchar),]$nchar=0
 
 # Lower case
 db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
+
+# sinal de genero
+db.sms$ans.boy=ifelse(grepl("*filho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.girl=ifelse(grepl("*filha*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# sinais de concordancia 
+db.sms$ans.cool=ifelse(grepl("*legal*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.thank=ifelse(grepl("*obrigado*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.thank1=ifelse(grepl("*obg*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.sure=ifelse(grepl("*com certeza*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.truth=ifelse(grepl("*verdade*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# sinais de afeto
+db.sms$ans.affection=ifelse(grepl("*carinho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.love=ifelse(grepl("*amo*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.love1=ifelse(grepl("*ama*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.friends=ifelse(grepl("*amizade*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# sinais de discordância
+db.sms$ans.no=ifelse(grepl("*não*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# outras ideias 
+db.sms$ans.math=ifelse(grepl("*matematica*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.dream=ifelse(grepl("*sonho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.dream1=ifelse(grepl("*escola*",db.sms$answer,ignore.case = T)==T,1,0)
+
+#
 
 # Presence of "SIM"
 db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)

@@ -30,7 +30,14 @@ treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9)
 
 dataset$R_oracle=NA
 dataset$R_oracle_group=NA
+dataset$R_oracle_all=NA
+dataset$R_oracle_group_all=NA
 dataset$R_proxy=NA
+
+for(i in treat){
+  dataset$R_oracle_all =ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_main_effect")],dataset$R_oracle_all)
+  dataset$R_oracle_group_all =ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_group_effect")],dataset$R_oracle_group_all)
+}
 
 for(i in treat.fit){
   dataset$R_oracle =ifelse(dataset[,i]==1 & !is.na(dataset[,i]),dataset[,paste0(i,"_main_effect")],dataset$R_oracle)
@@ -41,10 +48,12 @@ for(i in treat.fit){
 dataset$R_oracle_max=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max)
 dataset$R_proxy_max=apply(dataset[,grep("group_effect_fit",names(dataset),fixed=T,value=T)],1,max,na.rm=T)
 
+dataset$R_oracle_max_all=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max)
+
 # Compute statistics
 
-Delta_oracle=mean(dataset$R_oracle_max-dataset$R_oracle,na.rm=T)
-Delta_proxy=mean(dataset$R_proxy_max-dataset$R_proxy,na.rm=T)
+Delta_oracle=mean(dataset$R_oracle_max-dataset$R_oracle_group,na.rm=T)
+Delta_proxy=mean(dataset$R_proxy_max-dataset$R_proxy_group,na.rm=T)
 
 proxy.quality=Delta_proxy/Delta_oracle
 
@@ -97,8 +106,8 @@ ggplot(data=as.data.frame(DELTA_AI),aes(V1)) +
   theme_minimal()
 ggsave(paste0(fig.path,"delta_ai_dist.png"))
 
-table = dataset[dataset$treat_cod%in%as.numeric(substring(treat.fit,2,3)),] %>% 
-  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group==R_oracle_max,na.rm = T)/length(R_oracle_max))
+table = dataset %>% 
+  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all==R_oracle_max_all,na.rm = T)/length(R_oracle_max_all))
 
 ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
   geom_col() +

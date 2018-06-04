@@ -94,7 +94,7 @@ for(k in c("","_fit")){
   fmla=paste0(chosen.outcome,k," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
   
   
-  for(i in treat.fit){
+  for(i in treat){
     
     dt.temp=dataset[!is.na(dataset[,i]),]
     
@@ -130,7 +130,7 @@ for(k in c("","_fit")){
     
   }
   
-  for(i in treat.fit){
+  for(i in treat){
     
     dataset[,paste0(i,"_group_effect",k)]=NA
     dataset[,paste0(i,"_main_effect",k)]=NA

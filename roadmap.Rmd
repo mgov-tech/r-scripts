@@ -1,0 +1,96 @@
+---
+title: "Roadmap IA"
+output: html_notebook
+---
+
+# Prova de conceito
+
+Este é o registro dos primeiros passos na construção da prova de conceito utilizando IA. 
+Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
+
+
+```{r}
+cars <- c(10,1,2,3,4)
+```
+
+```{r}
+plot(cars)
+```
+
+
+# 1. Feature selection space
+
+$$I(f,i,U,B) \\ f=feature, i=aluno, t=semana, B=bimestre$$
+
+```{r}
+
+# Lower case
+db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
+
+# sinal de genero
+db.sms$ans.boy=ifelse(grepl("*filho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.girl=ifelse(grepl("*filha*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# sinais de concordancia 
+db.sms$ans.cool=ifelse(grepl("*legal*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.thank=ifelse(grepl("*obrigado*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.thank1=ifelse(grepl("*obg*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.sure=ifelse(grepl("*com certeza*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.truth=ifelse(grepl("*verdade*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# sinais de afeto
+db.sms$ans.affection=ifelse(grepl("*carinho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.love=ifelse(grepl("*amo*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.love1=ifelse(grepl("*ama*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.friends=ifelse(grepl("*amizade*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
+
+```
+
+
+# 2. Proxy
+
+
+$$LASSO\: \hat{Y}= \?\?$$
+
+
+# 3. Prediction model: differences (not levels)
+
+OLS: Y_i,B = alpha + sum(Beta_k * vk) + eps_i,B
+-> Rodar k regression trees: Beta^hat_k,i = w(
+C_i), em que C_i sao caracteristicas da familia e do aluno i (edited)
+-> preencher Beta^hat_k,i (k colunas para cada individuo, que seguem as k arvores)
+
+
+# 4. Causal trees
+
+OLS: Y^LASSO_i,B = alpha + sum(Gamma_k * vk) + eps_i,B
+-> Rodar k regression trees: Gamma^hat_k,i = z(X_i) (edited)
+-> preencher Gamma^hat_k,i (k colunas para cada individuo, que seguem as k arvores) (edited)
+
+
+# 5. Randomizer 
+
+- Pr_i,k,B+1 = exp(Gamma^hat_k,i) / sum_j [exp(Gamma^hat_j,i)]
+
+
+# 6. Simulating the gains of AI
+
+Computar: 
+- R_real_i = Beta^hat_i (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+- R_real^MAX_i = max_k(Beta^hat_k,i) (isto é, o retorno máximo previsto para o aluno i) (edited)
+- R_proxy_i = Gamma^hat_i (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+- R_proxy^MAX_i = max_k(Gamma^hat_k,i) (isto é, o retorno máximo previsto para o aluno i) (edited)
+Computar também:
+- Delta_oraculo = mean_i(R_real^MAX_i - R_real_i)
+- Delta_proxy = mean_i(R_proxy^MAX_i - R_proxy_i)
+- QUALITY = Delta_proxy/Delta_oraculo (% do ganho de impacto que poderia ser obtido pela proxy)
+
+
+# 7. How well does AI approximate the potential gains?
+
+- Predicted_impact_t,B = mean_i(Post_LASSO_i,t,B - Post_LASSO_0,t,B), em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
+
+
+```{r}
+```

@@ -8,15 +8,113 @@ output: html_notebook
 Este é o registro dos primeiros passos na construção da prova de conceito utilizando IA. 
 Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
 
+## Contexto
+
+Combinando # de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
 
 ```{r}
-cars <- c(10,1,2,3,4)
+library(ggplot2)
+library(waffle)
+
+parts <- c(`Receberam a mensagem com interação` = (12), `Não receberam a mensagem com interação` = c(12))
+waffle(
+  parts, rows = 2, size = 1, 
+  colors = c("#969696", "#1879bf", "#009bda"), legend_pos = "bottom"
+)
 ```
+
+**Importante**
+
+As notas são por bimestre ( 3o e 4o bimestre)
+As mensagens são em 'tempo real' durante as semanas 
+Transformamos tudo em semana
+
+# 0. Organização dos dados 
+
+Antes de iniciar qualquer análise precisamos organizar nossa base de dados.
+Alguns passos como: 
+
+- Importar a base dta com os dados adminstrativos
+- Fazer correções de nomes nas colunas 
+- Criar as variáveis de tratamento
+- Ler as mensagems SMS 
+- Remover duplicadas 
 
 ```{r}
-plot(cars)
-```
+library(readstata13)
+library(readxl)
+library(dplyr)
+library(genderBR)
 
+# No scientif notation
+options(scipen=999)
+
+source('config.R')
+
+### Read data
+
+# Read outcomes data
+dataset1=read.dta13(paste0(data.path,"diff_ago8.dta"))
+
+# Read characteristics data
+dataset2=read.dta13(paste0(data.path,"sms_escola_mar21.dta"))
+
+# Create treatment variables
+for(i in 1:24){
+dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==i,1,NA)
+dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==25,0,dataset1[,paste0("v",i)])
+}
+
+# Rename boeltim to boletim
+names(dataset1)=gsub("bolteim","boletim",names(dataset1))
+names(dataset2)=gsub("bolteim","boletim",names(dataset2))
+
+# Select variables
+select.vars=c("menina","idade","parda","preta","mae","idade_resp","parda_resp","preta_resp","educ_baixa","educ_EF","educ_EM","renda_1SM","renda_1a3SM","estrato_escola")
+
+dataset2=dataset2[,c("ra",select.vars)]
+
+# Read sms data
+db.sms=read_excel(paste0(data.path,"interacoes_smsescola.xlsx"))
+
+# Change "Resposta extra" to preceeding question
+db.sms$extra_ans=ifelse(db.sms$question=="Resposta extra",1,0)
+while(length(which(db.sms$question=="Resposta extra"))>0){
+db.sms[which(db.sms$question=="Resposta extra"),]$question=db.sms[which(db.sms$question=="Resposta extra")-1,]$question
+}
+
+## Drop unnecessary data
+
+dataset1$treat_cod=dataset1$t_eduq
+dataset1=dataset1[,!grepl("t_eduq",names(dataset1))]
+for(i in 1:4){dataset1[,paste0("boletim_lp",i)]=ifelse(dataset1$t!=i,NA,dataset1[,paste0("boletim_lp",i)])}
+
+dataset1$boletim_lp=rowSums(dataset1[,paste0("boletim_lp",1:4)],na.rm=T)
+dataset1=dataset1[,!names(dataset1)%in%paste0("boletim_lp",1:4)]
+dataset1=dataset1[,!names(dataset1)%in%paste0("eduq_puro",1:3)]
+dataset1=dataset1[,!names(dataset1)%in%c("s","boletim_mat_z","boletim_lp_z","t2")]
+
+# Find phone-ra correspondence through another database
+
+phone.ra=read.dta13(paste0(data.path,"/base_alunos_completa_dadossociodem_matched copy.dta"))
+phone.ra=phone.ra %>% group_by(ra) %>% dplyr::summarise(phone=unique(celular))
+phone.ra$phone=as.numeric(substring(phone.ra$phone,2,nchar(phone.ra$phone)))
+
+# Merge phone.ra and dataset1
+dataset1=merge(dataset1,phone.ra,by="ra",all.x=T)
+
+# Merge dataset2 and dataset1
+dataset=merge(dataset1,dataset2,by="ra",all.x=T)
+
+# Drop obs
+
+# eduq_freq - Tratamento Engajamento - Frequencia (frequency)
+# eduq_time - Tratamento Engajamento - Hora do dia (time)
+# eduq_feed - Tratamento Engajamento - Feedback (interactivity)
+
+dataset=dataset[dataset$t%in%c(3,4),]
+dataset=dataset[dataset$eduq_feed!=0,]
+```
 
 # 1. Feature selection space
 
@@ -44,6 +142,56 @@ db.sms$ans.love=ifelse(grepl("*amo*",db.sms$answer,ignore.case = T)==T,1,0)
 db.sms$ans.love1=ifelse(grepl("*ama*",db.sms$answer,ignore.case = T)==T,1,0)
 db.sms$ans.friends=ifelse(grepl("*amizade*",db.sms$answer,ignore.case = T)==T,1,0)
 db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
+# sinais de discordância
+db.sms$ans.no=ifelse(grepl("*não*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# outras ideias 
+db.sms$ans.math=ifelse(grepl("*matematica*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.dream=ifelse(grepl("*sonho*",db.sms$answer,ignore.case = T)==T,1,0)
+db.sms$ans.dream1=ifelse(grepl("*escola*",db.sms$answer,ignore.case = T)==T,1,0)
+
+#
+
+# Presence of "SIM"
+db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# Keep created variables
+created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
+
+### Collapse sms dataset
+
+# Change names
+names(db.sms)[names(db.sms)=="semana"]="week"
+names(dataset)[names(dataset)=="t"]="bimester"
+
+# Create bimester variable
+db.sms$bimester=ifelse(db.sms$week%in%1:9,3,NA)
+db.sms$bimester=ifelse(db.sms$week%in%10:18,4,db.sms$bimester)
+
+# Collapse
+dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,sum,min))
+dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean,min,max))
+names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
+
+dataset.sms=left_join(dataset.sms,dataset.sms.week)
+
+# Merge dataset1 and db.sms
+
+dataset=merge(dataset,dataset.sms,by=c("phone","bimester"),all.x=T)
+
+# Lasso variables
+
+lasso.vars=grep(paste0(c(created.vars,"week"),collapse="|"),names(dataset),value=T)
+
+dataset = dataset %>% mutate_at(lasso.vars,funs(replace(., which(is.na(.)), 0)))
+dataset[dataset$eduq_feed%in%c(9),lasso.vars]=NA
+
+
+# Create characteristics variable
+
+save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
+
 
 ```
 
@@ -54,28 +202,297 @@ db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
 $$LASSO\: \hat{Y}= \?\?$$
 
 
+```{r}
+library(glmnet)
+library(ggplot2)
+library(plyr)
+library(lfe)
+
+# No scientific notation
+options(scipen=999)
+
+# Source personal configurations
+source('config.R')
+fig.path=paste0(main.path,"fig/")
+
+# Outcomes
+
+outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
+
+chosen.outcome=outcomes[1]
+
+# Transform outcomes (z-score)
+
+if(T){
+  for(i in outcomes) {
+    dataset[,i] = as.numeric(scale(dataset[,i]))
+  }
+}
+
+# Read data
+
+load(paste0(data.path,"dataset.RData"))
+dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
+
+# Keep variables without residualization for prediction
+x.old=as.matrix(dataset.lasso[,lasso.vars])
+y.old=dataset.lasso[,chosen.outcome]
+
+# Residualize data
+
+resid.fe=function(z){
+  reg=felm(z ~ 0 | fix.effect)
+  resid=reg$resid
+  return(resid) 
+}
+
+fix.effect=dataset.lasso$bimester
+
+if(T){
+  x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
+  y=resid.fe(dataset.lasso[,chosen.outcome])
+} else {
+  x=as.matrix(dataset.lasso[,lasso.vars])
+  y=dataset.lasso[,chosen.outcome]
+}
+
+# Estimation
+
+# Lasso with cross-validation
+
+lambda.grid=exp(seq(-12,0,length.out=100))
+
+lasso=glmnet(x,y,lambda = lambda.grid)
+set.seed(1234)
+cvlasso=cv.glmnet(x,y,nfolds=5,lambda = lambda.grid)
+
+# Save plot
+#png(filename=paste0(fig.path,"cvlasso.png"))
+plot(cvlasso)
+#dev.off()
+
+# Get proxy
+
+lambda.str=cvlasso$lambda.min
+feat.select=rownames(as.matrix(coef(cvlasso,lambda.str)))[as.matrix(coef(cvlasso,lambda.str))!=0]
+
+dataset.lasso[,paste0(chosen.outcome,"_fit")]=as.numeric(predict(cvlasso,newx=x.old,s=lambda.str,type="response"))
+#dataset.lasso=rbind.fill(dataset.lasso,dataset[dataset$eduq_feed==9,])
+
+dataset=merge(dataset,dataset.lasso[,c("phone","bimester",paste0(chosen.outcome,"_fit"))],by=c("phone","bimester"),all.x=T)
+dataset[,paste0(chosen.outcome,"_fit")]=ifelse(dataset$eduq_feed==9 & !is.na(dataset[,paste0(chosen.outcome)]),coef(cvlasso,"lambda.min")[1,],dataset[,paste0(chosen.outcome,"_fit")])
+dataset=dataset[!is.na(dataset[,chosen.outcome]),]
+
+# Save datasets for trees
+
+save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
+
+```
+
+
+
 # 3. Prediction model: differences (not levels)
 
+```
 OLS: Y_i,B = alpha + sum(Beta_k * vk) + eps_i,B
 -> Rodar k regression trees: Beta^hat_k,i = w(
 C_i), em que C_i sao caracteristicas da familia e do aluno i (edited)
 -> preencher Beta^hat_k,i (k colunas para cada individuo, que seguem as k arvores)
+```
 
+----------
 
 # 4. Causal trees
 
+```
 OLS: Y^LASSO_i,B = alpha + sum(Gamma_k * vk) + eps_i,B
 -> Rodar k regression trees: Gamma^hat_k,i = z(X_i) (edited)
 -> preencher Gamma^hat_k,i (k colunas para cada individuo, que seguem as k arvores) (edited)
+```
+
+
+```{r}
+library(devtools)
+library(causalTree)
+library(stringr)
+
+# Source personal configurations
+source('config.R')
+
+# Load data
+
+load(paste0(data.path,"data_tree.RData"))
+
+# Outcomes
+outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
+
+chosen.outcome=outcomes[1]
+
+# Choose variations of treatments
+treat=paste0("v",1:24)
+treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9),paste0("v",x)]==1,na.rm=T))>0]
+
+opfit=list()
+# Formula and outcome
+
+# Functions for finding treatment groups
+
+find.branches=function(opfit){
+  
+  out = capture.output(opfit)
+  
+  root.loc=grep("root",out,fixed=T)
+  
+  all.nodes=out[root.loc:length(out)]
+  end.nodes.loc=grep("\\*$",all.nodes)
+  
+  rank.nodes=nchar(all.nodes)-nchar(str_trim(all.nodes,"left"))
+  
+  branches=list()
+  
+  for(i in seq_along(end.nodes.loc)){
+    
+    node.loc=end.nodes.loc[i]
+    branches[[i]]=c(all.nodes[node.loc])
+    
+    while(grepl("root",branches[[i]][length(branches[[i]])],fixed=T)!=T){
+      
+      lower.nodes=which(all.nodes[1:node.loc]%in%all.nodes[rank.nodes<rank.nodes[node.loc]])
+      argmin.lower.nodes=which.min(abs(node.loc-lower.nodes))
+      
+      clost.node.loc=lower.nodes[argmin.lower.nodes]
+      closest.node=all.nodes[clost.node.loc]
+      
+      branches[[i]]=str_trim(c(branches[[i]],closest.node),"left")
+      
+      node.loc=clost.node.loc
+      
+    }
+  }
+  return(branches)
+}
+
+find.groups=function(branch){
+  noroot.branch=branch[-length(branch)]
+  split.branch=unlist(strsplit(noroot.branch,split=" "))
+  
+  root.branch=strsplit(branch[length(branch)],split=" ")
+  
+  conds=c()
+  groups=list()
+  
+  conds=split.branch[grep(">=",split.branch,fixed=T)]
+  
+  for(i in seq_along(split.branch)){
+    if(grepl("<",split.branch[i],fixed=T)){
+      conds=c(conds,paste0(split.branch[i],split.branch[i+1]))
+    }
+  }
+  
+  group.effect=split.branch[which(split.branch=="*")-1]
+  
+  main.effect=as.numeric(root.branch[[1]][length(root.branch[[1]])-1])
+  
+  groups=list(conds=conds,group.effect=group.effect,main.effect=main.effect)
+  return(groups)
+}
+
+# Trees
+
+main_effect=NA
+main_effect_fit=NA
+groups=list()
+
+for(k in c("","_fit")){
+  
+  fmla=paste0(chosen.outcome,k," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
+  
+  
+  for(i in treat){
+    
+    dt.temp=dataset[!is.na(dataset[,i]),]
+    
+    tree = causalTree(fmla, 
+                      data = dt.temp, treatment = dt.temp[,i],
+                      split.Rule = "TOT", 
+                      cv.option = "fit", 
+                      minsize = 30,  
+                      cv.Honest = T, 
+                      split.Bucket = T, 
+                      xval = 10, 
+                      propensity = 0.8)
+    
+    opcp = tree$cptable[, 1][which.min(tree$cptable[,4])]
+    opfit = prune(tree, cp = opcp)
+    
+    png(filename=paste0(fig.path,i,k,".png"),width=480,height=480)
+    rpart.plot(opfit,           
+               type = 1, 
+               extra=101, 
+               under=T, 
+               digits=2, 
+               box.palette=0)
+    dev.off()
+    
+    branches=find.branches(opfit)
+    
+    tree.groups=list()
+    for(j in seq_along(branches)){
+      tree.groups[[j]]=find.groups(branches[[j]])
+    }
+    groups[[i]]=tree.groups
+    
+  }
+  
+  for(i in treat){
+    
+    dataset[,paste0(i,"_group_effect",k)]=NA
+    dataset[,paste0(i,"_main_effect",k)]=NA
+    
+    if(k!="_fit"){
+      main_effect[i]=groups[[i]][[1]]$main.effect
+
+    } else {
+      main_effect_fit[i]=groups[[i]][[1]]$main.effect
+
+    }
+    
+  }
+  
+  for(i in seq_along(groups)){
+    
+    for(j in seq_along(groups[[i]])){
+      if(!is.null(groups[[i]][[j]]$conds)){
+        eval(parse(text=paste0("dataset$",names(groups[i]),"_group_effect",k,"=","ifelse(",paste0("dataset$",groups[[i]][[j]]$conds,collapse="&"),",",groups[[i]][[j]]$group.effect,",","dataset$",names(groups[i]),"_group_effect",k,")")))
+      }
+    }
+    eval(parse(text=paste0("dataset$",names(groups)[i],"_main_effect",k,"=",groups[[i]][[j]]$main.effect)))
+    
+  }
+  
+}
+
+main_effect=main_effect[!is.na(main_effect)]
+main_effect_fit=main_effect_fit[!is.na(main_effect_fit)]
+
+save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_final.RData"))
+
+```
+
+![](fig/v24_fit.png) 
 
 
 # 5. Randomizer 
 
+```
 - Pr_i,k,B+1 = exp(Gamma^hat_k,i) / sum_j [exp(Gamma^hat_j,i)]
+```
 
+$$P(i,k)$$
 
 # 6. Simulating the gains of AI
 
+```
 Computar: 
 - R_real_i = Beta^hat_i (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
 - R_real^MAX_i = max_k(Beta^hat_k,i) (isto é, o retorno máximo previsto para o aluno i) (edited)
@@ -85,12 +502,13 @@ Computar também:
 - Delta_oraculo = mean_i(R_real^MAX_i - R_real_i)
 - Delta_proxy = mean_i(R_proxy^MAX_i - R_proxy_i)
 - QUALITY = Delta_proxy/Delta_oraculo (% do ganho de impacto que poderia ser obtido pela proxy)
-
+```
 
 # 7. How well does AI approximate the potential gains?
 
+```
 - Predicted_impact_t,B = mean_i(Post_LASSO_i,t,B - Post_LASSO_0,t,B), em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
-
+```
 
 ```{r}
 ```

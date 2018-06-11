@@ -293,22 +293,21 @@ save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
 
 # 3. Prediction model: differences (not levels)
 
-```
-OLS: Y_i,B = alpha + sum(Beta_k * vk) + eps_i,B
--> Rodar k regression trees: Beta^hat_k,i = w(
-C_i), em que C_i sao caracteristicas da familia e do aluno i (edited)
--> preencher Beta^hat_k,i (k colunas para cada individuo, que seguem as k arvores)
-```
+
+$$OLS: Y_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
+-> Rodar k regression trees: $$ \hat{\beta}_{k,i} = w(C_{i})$$, em que C_{i} sao características da familia e do aluno i \\
+-> preencher $$\hat{\beta}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores)
+
 
 ----------
 
 # 4. Causal trees
 
-```
-OLS: Y^LASSO_i,B = alpha + sum(Gamma_k * vk) + eps_i,B
--> Rodar k regression trees: Gamma^hat_k,i = z(X_i) (edited)
--> preencher Gamma^hat_k,i (k colunas para cada individuo, que seguem as k arvores) (edited)
-```
+
+$$OLS: Y^{LASSO}_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
+-> Rodar k regression trees: $$\hat{\gamma}_{k,i} = z(X_i)$$ (edited)
+-> preencher $$\hat{\gamma}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores) (edited)
+
 
 
 ```{r}
@@ -484,25 +483,24 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 
 # 5. Randomizer 
 
-```
-- Pr_i,k,B+1 = exp(Gamma^hat_k,i) / sum_j [exp(Gamma^hat_j,i)]
-```
+
+- $$P_{i,k,B+1} = exp(\hat{\gamma}_{k,i}) / \sum_{j} [exp(\hat{\gamma}_{j,i})]$$
+
 
 $$P(i,k)$$
 
 # 6. Simulating the gains of AI
 
-```
+
 Computar: 
-- R_real_i = Beta^hat_i (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- R_real^MAX_i = max_k(Beta^hat_k,i) (isto é, o retorno máximo previsto para o aluno i) (edited)
-- R_proxy_i = Gamma^hat_i (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- R_proxy^MAX_i = max_k(Gamma^hat_k,i) (isto é, o retorno máximo previsto para o aluno i) (edited)
+- $$R_{real_{i}} = \hat{\beta}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+- $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i) (edited)
+- $$R_{proxy_i} = \hat{\gamma}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+- $$R_{proxy_{i}}^{MAX} = max_k(\hat{\gamma}_i)$$ (isto é, o retorno máximo previsto para o aluno i) (edited)
 Computar também:
-- Delta_oraculo = mean_i(R_real^MAX_i - R_real_i)
-- Delta_proxy = mean_i(R_proxy^MAX_i - R_proxy_i)
-- QUALITY = Delta_proxy/Delta_oraculo (% do ganho de impacto que poderia ser obtido pela proxy)
-```
+- $$\Delta_{oracle} = mean_{i}(R_{real_{i}}^{MAX} - R_{real_i})$$
+- $$\Delta_{proxy} = mean_i(R_{proxy_{i}}^{MAX} - R_proxy_i)$$
+- $$QUALITY = \Delta_{proxy}/\Delta_{oracle}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
 
 # 7. How well does AI approximate the potential gains?
 

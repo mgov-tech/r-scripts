@@ -8,7 +8,7 @@ output: html_notebook
 Este é o registro dos primeiros passos na construção da prova de conceito utilizando IA. 
 Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
 
-## Contexto
+# Introdução
 
 Combinando # de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
 
@@ -23,7 +23,7 @@ waffle(
 )
 ```
 
-**Importante**
+**Importante para o contexto**
 
 As notas são por bimestre ( 3o e 4o bimestre)
 As mensagens são em 'tempo real' durante as semanas 
@@ -38,7 +38,7 @@ Alguns passos como:
 - Fazer correções de nomes nas colunas 
 - Criar as variáveis de tratamento
 - Ler as mensagems SMS 
-- Remover duplicadas 
+- Remover os dados duplicados 
 
 ```{r}
 library(readstata13)
@@ -305,8 +305,8 @@ $$OLS: Y_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
 
 
 $$OLS: Y^{LASSO}_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
--> Rodar k regression trees: $$\hat{\gamma}_{k,i} = z(X_i)$$ (edited)
--> preencher $$\hat{\gamma}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores) (edited)
+-> Rodar k regression trees: $$\hat{\gamma}_{k,i} = z(X_i)$$ 
+-> preencher $$\hat{\gamma}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores) 
 
 
 
@@ -484,7 +484,7 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 # 5. Randomizer 
 
 
-- $$P_{i,k,B+1} = exp(\hat{\gamma}_{k,i}) / \sum_{j} [exp(\hat{\gamma}_{j,i})]$$
+$$P_{i,k,B+1} = exp(\hat{\gamma}_{k,i}) / \sum_{j} [exp(\hat{\gamma}_{j,i})]$$
 
 
 $$P(i,k)$$
@@ -504,6 +504,7 @@ Computar também:
 
 # 7. How well does AI approximate the potential gains?
 
+TBA
 ```
 - Predicted_impact_t,B = mean_i(Post_LASSO_i,t,B - Post_LASSO_0,t,B), em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
 ```

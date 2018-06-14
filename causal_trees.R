@@ -19,7 +19,6 @@ treat=paste0("v",1:24)
 treat.fit=treat[sapply(1:24,function(x) sum(dataset[!dataset$eduq_feed%in%c(2,9),paste0("v",x)]==1,na.rm=T))>0]
 
 opfit=list()
-# Formula and outcome
 
 # Functions for finding treatment groups
 

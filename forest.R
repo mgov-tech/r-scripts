@@ -16,6 +16,10 @@ outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
 
 chosen.outcome=outcomes[1]
 
+# Read data
+
+load(paste0(data.path,"dataset.RData"))
+
 # Transform outcomes (z-score)
 
 if(T){
@@ -23,10 +27,6 @@ if(T){
     dataset[,i] = as.numeric(scale(dataset[,i]))
   }
 }
-
-# Read data
-
-load(paste0(data.path,"dataset.RData"))
 
 # Make forest
 

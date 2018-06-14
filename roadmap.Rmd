@@ -27,7 +27,7 @@ waffle(
 
 As notas são por bimestre ( 3o e 4o bimestre)
 As mensagens são em 'tempo real' durante as semanas 
-Transformamos tudo em semana
+Transformamos tudo em semana (Por enquanto não)
 
 # 0. Organização dos dados 
 
@@ -118,7 +118,16 @@ dataset=dataset[dataset$eduq_feed!=0,]
 
 # 1. Feature selection space
 
-$$I(f,i,U,B) \\ f=feature, i=aluno, t=semana, B=bimestre$$
+Temos features $f(i,r)$
+
+$$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens em tempo real dentro do período $t$: semana, quinzena, mês. A função $F()$ captura alguma feature das mensagens como: número de caractéres, presença da palavra "sim", caixa alta.
+
+$$ I(i,t) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H()=(h_1(),h_2(),...,h_P())$ e $h_p: \digamma \to \Upsilon,\ p=(1,2,...,P)$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
+
+Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no período $t$ de cada indíviduo $i$.
+
+$$I_p(i,t)$$
+, onde $p=$(média, mínimo, mediana,...)
 
 ```{r}
 
@@ -199,7 +208,7 @@ save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
 # 2. Proxy
 
 
-$$LASSO\: \hat{Y}= \?\?$$
+$$LASSO: \Delta Y_{i,B}^{Lasso}=g(\Delta I(i,t)) $$, escolhendo $\hat{g}(.)$ que minimize a função perda do Lasso.
 
 
 ```{r}
@@ -291,22 +300,20 @@ save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
 
 
 
-# 3. Prediction model: differences (not levels)
+# 3. Previsão de efeitos heterogêneos sobre dados reais oraculo
 
 
-$$OLS: Y_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
--> Rodar k regression trees: $$ \hat{\beta}_{k,i} = w(C_{i})$$, em que C_{i} sao características da familia e do aluno i \\
--> preencher $$\hat{\beta}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores)
+$$ OLS: Y_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
+Rodar k regression trees: $$ \hat{\beta}_{k,i} = w_k(C_{i})$$, em que $C_{i}$ sao características da familia e do aluno i preencher $\hat{\beta}_{k,i}$ (k colunas para cada individuo, que seguem as k arvores)
 
 
 ----------
 
-# 4. Causal trees
+# 4. Previsão de efeitos heterogêneos sobre a proxy
 
 
-$$OLS: Y^{LASSO}_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
--> Rodar k regression trees: $$\hat{\gamma}_{k,i} = z(X_i)$$ 
--> preencher $$\hat{\gamma}_{k,i}$$ (k colunas para cada individuo, que seguem as k arvores) 
+$$OLS: Y^{LASSO}_{i,B} = \alpha + \sum_k \gamma_{k} * v_{k} + \epsilon_{i,B} $$
+Rodar k regression trees: $$\hat{\gamma}_{k,i} = z(C_{i})$$ preencher $\hat{\gamma}_{k,i}$ (k colunas para cada individuo, que seguem as k arvores) 
 
 
 
@@ -484,7 +491,7 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 # 5. Randomizer 
 
 
-$$P_{i,k,B+1} = exp(\hat{\gamma}_{k,i}) / \sum_{j} [exp(\hat{\gamma}_{j,i})]$$
+$$P_{i,k,B+1} = \frac{e^{\hat{\gamma}_{k,i}}}{\sum_{j}e^\hat{\gamma_{j,i}}}$$
 
 
 $$P(i,k)$$
@@ -494,13 +501,25 @@ $$P(i,k)$$
 
 Computar: 
 - $$R_{real_{i}} = \hat{\beta}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i) (edited)
+- $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i)
 - $$R_{proxy_i} = \hat{\gamma}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- $$R_{proxy_{i}}^{MAX} = max_k(\hat{\gamma}_i)$$ (isto é, o retorno máximo previsto para o aluno i) (edited)
+- $$R_{proxy_{i}}^{MAX} = max_k(\hat{\gamma}_i)$$ (isto é, o retorno máximo previsto para o aluno i)
 Computar também:
-- $$\Delta_{oracle} = mean_{i}(R_{real_{i}}^{MAX} - R_{real_i})$$
+- $$\Delta_{oracle}^{ign} = mean_{i}(R_{real_{i}}^{MAX} - R_{real_i})$$
+"A média do máximo que poderia ser ganho de impacto, comparando com o impacto previsto do que cada um estava recebendo na real"
+
+- $$\Delta_{oracle}^{OLS} = mean_{i}(R_{real_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
+"A média do méximo que poderia ser ganho de impacto, comparando com o impacto previsto que cada teria se recebesse a variação com a máxima média"
+
+- $$\Delta_{AI}^{ign} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{real_i})$$
+"A média do que poderia ser ganho de impacto usando proxies e randomizer, comparando com o impacto previsto do que cada um estava recebendo na real"
+
+- $$\Delta_{AI}^{OLS} = mean_{i}(R_{proxy_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
+"A média do que poderia ser ganho de impacto usando proxies e randomizer,  comparando com o impacto previsto que cada teria se recebesse a variacao com a máxima média"
+
 - $$\Delta_{proxy} = mean_i(R_{proxy_{i}}^{MAX} - R_proxy_i)$$
-- $$QUALITY = \Delta_{proxy}/\Delta_{oracle}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
+
+- $$QUALITY^{OLS} = \Delta_{oracle}^{OLS}/\Delta_{AI}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
 
 # 7. How well does AI approximate the potential gains?
 

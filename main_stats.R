@@ -52,7 +52,8 @@ dataset$R_oracle_max_all=apply(dataset[,grep("_fit",grep("group_effect",names(da
 
 # Compute statistics
 
-Delta_oracle=mean(dataset$R_oracle_max-dataset$R_oracle_group,na.rm=T)
+Delta_oracle_ign=mean(dataset$R_oracle_max-dataset$R_oracle_group,na.rm=T)
+Delta_oracle_ols=mean(dataset$R_oracle_max-max(dataset$R_oracle,na.rm=T),na.rm=T)
 Delta_proxy=mean(dataset$R_proxy_max-dataset$R_proxy_group,na.rm=T)
 
 proxy.quality=Delta_proxy/Delta_oracle
@@ -84,17 +85,19 @@ DELTA_AI <- foreach(i=1:1000, .combine=rbind) %dopar% {
   
   R_simul_avg=sapply(1:nrow(dataset), function(x) mean(as.numeric(dataset[x,paste0(rea[x,],"_group_effect")]),na.rm=T))
   
-  delta=mean(R_simul_avg-dataset$R_oracle,na.rm=T)
+  delta_ign=mean(R_simul_avg-dataset$R_oracle_group,na.rm=T)
+  delta_ols=mean(R_simul_avg-max(dataset$R_oracle,na.rm=T),na.rm=T)
   
-  delta
+  delta=c(delta_ign,delta_ols)
   
 }
 stopCluster(cl)
 save(DELTA_AI,file=paste0(data.path,"delta_ai.R"))
 
-Delta_ai=mean(DELTA_AI)
+Delta_ai_ign=mean(DELTA_AI[,1])
+Delta_ai_ols=mean(DELTA_AI[,2])
 
-quality=Delta_ai/Delta_oracle
+quality=Delta_ai_ign/Delta_oracle_ign
 print(quality)
 
 # Graphs
@@ -115,6 +118,7 @@ ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
   ylab("Proportion") +
   theme_minimal()
 ggsave(paste0(fig.path,"v_max.png"))
+
 
 
 

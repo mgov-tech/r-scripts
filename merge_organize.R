@@ -2,6 +2,7 @@ library(readstata13)
 library(readxl)
 library(dplyr)
 library(genderBR)
+library(data.table)
 
 # No scientif notation
 options(scipen=999)
@@ -18,8 +19,8 @@ dataset2=read.dta13(paste0(data.path,"sms_escola_mar21.dta"))
 
 # Create treatment variables
 for(i in 1:24){
-dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==i,1,NA)
-dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==25,0,dataset1[,paste0("v",i)])
+  dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==i,1,NA)
+  dataset1[,paste0("v",i)]=ifelse(dataset1$t_eduq==25,0,dataset1[,paste0("v",i)])
 }
 
 # Rename boeltim to boletim
@@ -37,7 +38,7 @@ db.sms=read_excel(paste0(data.path,"interacoes_smsescola.xlsx"))
 # Change "Resposta extra" to preceeding question
 db.sms$extra_ans=ifelse(db.sms$question=="Resposta extra",1,0)
 while(length(which(db.sms$question=="Resposta extra"))>0){
-db.sms[which(db.sms$question=="Resposta extra"),]$question=db.sms[which(db.sms$question=="Resposta extra")-1,]$question
+  db.sms[which(db.sms$question=="Resposta extra"),]$question=db.sms[which(db.sms$question=="Resposta extra")-1,]$question
 }
 
 ## Drop unnecessary data
@@ -113,8 +114,6 @@ db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T
 db.sms$ans.dream=ifelse(grepl("*sonho*",db.sms$answer,ignore.case = T)==T,1,0)
 db.sms$ans.dream1=ifelse(grepl("*escola*",db.sms$answer,ignore.case = T)==T,1,0)
 
-#
-
 # Presence of "SIM"
 db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
 
@@ -146,9 +145,32 @@ dataset=merge(dataset,dataset.sms,by=c("phone","bimester"),all.x=T)
 
 lasso.vars=grep(paste0(c(created.vars,"week"),collapse="|"),names(dataset),value=T)
 
+# Interactions
+
+list.lasso.vars=list()
+K=length(lasso.vars)
+n.sup.triangle=(((K-1)*K)/2)+K
+
+k=1
+for(i in 1:length(lasso.vars)){
+  for(j in i:length(lasso.vars)){
+    
+    list.lasso.vars[[k]]=c(lasso.vars[i],lasso.vars[j])
+    k=k+1
+    
+  }
+}
+
+for(i in 1:length(list.lasso.vars)){
+
+  dataset[,paste0(list.lasso.vars[[i]],collapse="X")]=dataset[,list.lasso.vars[[i]][1]]*dataset[,list.lasso.vars[[i]][2]]
+  
+}
+
+lasso.vars=grep(paste0(lasso.vars,collapse="|"),names(dataset),value=T)
+
 dataset = dataset %>% mutate_at(lasso.vars,funs(replace(., which(is.na(.)), 0)))
 dataset[dataset$eduq_feed%in%c(9),lasso.vars]=NA
-
 
 # Create characteristics variable
 

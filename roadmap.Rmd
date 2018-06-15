@@ -6,14 +6,17 @@ output: html_notebook
 # Prova de conceito
 
 Este é o registro dos primeiros passos na construção da prova de conceito utilizando IA. 
-Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
+Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+ 
 
 # Introdução
 
-Combinando # de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
+Combinando o número de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
+
+criar uma árvore e pintar as folhas que são relevantes pra prova de conceito 
+
 
 ```{r}
-library(ggplot2)
+
 library(waffle)
 
 parts <- c(`Receberam a mensagem com interação` = (12), `Não receberam a mensagem com interação` = c(12))
@@ -34,7 +37,7 @@ Transformamos tudo em semana (Por enquanto não)
 Antes de iniciar qualquer análise precisamos organizar nossa base de dados.
 Alguns passos como: 
 
-- Importar a base dta com os dados adminstrativos
+- Importar a base (formato .dta) com os dados adminstrativos
 - Fazer correções de nomes nas colunas 
 - Criar as variáveis de tratamento
 - Ler as mensagems SMS 
@@ -116,11 +119,13 @@ dataset=dataset[dataset$t%in%c(3,4),]
 dataset=dataset[dataset$eduq_feed!=0,]
 ```
 
-# 1. Feature selection space
+# 1. Feature Space
+
+Neste tópico, construimos o Feature Selection Space.
 
 Temos features $f(i,r)$
 
-$$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens em tempo real dentro do período $t$: semana, quinzena, mês. A função $F()$ captura alguma feature das mensagens como: número de caractéres, presença da palavra "sim", caixa alta.
+$$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens em tempo real dentro do período $t$: semana, quinzena, mês. A função $F()$ captura alguma feature das mensagens como: número de caracteres, presença da palavra "sim", caixa alta, etc
 
 $$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H()=(h_1(),h_2(),...,h_P())$ e $h_p: \digamma \to \Upsilon,\ p=(1,2,...,P)$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
 
@@ -128,6 +133,10 @@ Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no pe
 
 $$I_p(i,t)$$
 , onde $p=$(média, mínimo, mediana,...)
+
+```
+Importante: a fundação h() transforma o vetor das features das mensagens num escalar
+```
 
 ```{r}
 
@@ -204,11 +213,13 @@ save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
 
 ```
 
+TODO: TROCAR A SOMA PELA VARIÂNCIA
 
 # 2. Proxy
 
 
 $$LASSO: \Delta Y_{i,B}^{Lasso}=g(\Delta I(i,t)) $$, escolhendo $\hat{g}(.)$ que minimize a função perda do Lasso.
+
 
 
 ```{r}
@@ -298,7 +309,7 @@ save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
 
 ```
 
-
+COLOCAR A IMAGEM DO GRAFICO
 
 # 3. Previsão de efeitos heterogêneos sobre dados reais oraculo
 
@@ -490,6 +501,7 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 
 # 5. Randomizer 
 
+Não queremos que todos (100%) indivudos caiam na melhor amostra mas sim aumentar a propabibilidade 
 
 $$P_{i,k,B+1} = \frac{e^{\hat{\gamma}_{k,i}}}{\sum_{j}e^\hat{\gamma_{j,i}}}$$
 

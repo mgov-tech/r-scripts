@@ -122,7 +122,7 @@ Temos features $f(i,r)$
 
 $$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens em tempo real dentro do período $t$: semana, quinzena, mês. A função $F()$ captura alguma feature das mensagens como: número de caractéres, presença da palavra "sim", caixa alta.
 
-$$ I(i,t) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H()=(h_1(),h_2(),...,h_P())$ e $h_p: \digamma \to \Upsilon,\ p=(1,2,...,P)$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
+$$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H()=(h_1(),h_2(),...,h_P())$ e $h_p: \digamma \to \Upsilon,\ p=(1,2,...,P)$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
 
 Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no período $t$ de cada indíviduo $i$.
 
@@ -517,9 +517,9 @@ Computar também:
 - $$\Delta_{AI}^{OLS} = mean_{i}(R_{proxy_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
 "A média do que poderia ser ganho de impacto usando proxies e randomizer,  comparando com o impacto previsto que cada teria se recebesse a variacao com a máxima média"
 
-- $$\Delta_{proxy} = mean_i(R_{proxy_{i}}^{MAX} - R_proxy_i)$$
+- $$\Delta_{proxy} = mean_i(R_{proxy}_{i}}^{MAX} - R_proxy_i)$$
 
-- $$QUALITY^{OLS} = \Delta_{oracle}^{OLS}/\Delta_{AI}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
+- $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
 
 # 7. How well does AI approximate the potential gains?
 

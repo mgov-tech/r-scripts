@@ -59,7 +59,7 @@ lambda.grid=exp(seq(-12,0,length.out=100))
 
 lasso=glmnet(x,y,lambda = lambda.grid)
 set.seed(1234)
-cvlasso=cv.glmnet(x,y,nfolds=5,lambda = lambda.grid)
+cvlasso=cv.glmnet(x,y,nfolds=10)
 
 # Save plot
 #png(filename=paste0(fig.path,"cvlasso.png"))

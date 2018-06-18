@@ -122,7 +122,9 @@ Temos features $f(i,r)$
 
 $$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens em tempo real dentro do período $t$: semana, quinzena, mês. A função $F()$ captura alguma feature das mensagens como: número de caractéres, presença da palavra "sim", caixa alta.
 
-$$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H()=(h_1(),h_2(),...,h_P())$ e $h_p: \digamma \to \Upsilon,\ p=(1,2,...,P)$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
+À partir disso criamos estatíticas:
+
+$$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H(x)=(h_1(x),h_2(x),...,h_P(x))$ é um vetor com entradas $h_p: \digamma \to \Upsilon,\ p=\{1,2,...,P\}$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
 
 Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no período $t$ de cada indíviduo $i$.
 
@@ -490,16 +492,18 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 
 # 5. Randomizer 
 
+Para podermos realocar as alunas em novas variações, usamos o vetor de probabilidade com K entradas em que cada entrada k é:
 
 $$P_{i,k,B+1} = \frac{e^{\hat{\gamma}_{k,i}}}{\sum_{j}e^\hat{\gamma_{j,i}}}$$
 
+Dessa maneira, alocamos com maior probabilidade para as variações com maior $\hat{\gamma}_{k,i}$ (maior impacto).
 
-$$P(i,k)$$
 
 # 6. Simulating the gains of AI
 
 
-Computar: 
+Computar: \\
+
 - $$R_{real_{i}} = \hat{\beta}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
 - $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i)
 - $$R_{proxy_i} = \hat{\gamma}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
@@ -517,16 +521,18 @@ Computar também:
 - $$\Delta_{AI}^{OLS} = mean_{i}(R_{proxy_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
 "A média do que poderia ser ganho de impacto usando proxies e randomizer,  comparando com o impacto previsto que cada teria se recebesse a variacao com a máxima média"
 
-- $$\Delta_{proxy} = mean_i(R_{proxy}_{i}}^{MAX} - R_proxy_i)$$
+Simulação:
+
+Usamos as probabilidades geradas acima para realocar as alunas para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, usando as formulas acima, podemos estimar qual seria o ganho de ter realocado os alunos usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
+ 
+- $$\Delta_{proxy} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{proxy_{i}})$$
 
 - $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
 
 # 7. How well does AI approximate the potential gains?
 
-TBA
-```
-- Predicted_impact_t,B = mean_i(Post_LASSO_i,t,B - Post_LASSO_0,t,B), em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
-```
+- $Predictedimpact_t,B = mean_i(PostLASSO_i,t,B - PostLASSO_0,t,B)$, em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
+
 
 ```{r}
 ```

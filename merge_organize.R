@@ -131,7 +131,7 @@ db.sms$bimester=ifelse(db.sms$week%in%1:9,3,NA)
 db.sms$bimester=ifelse(db.sms$week%in%10:18,4,db.sms$bimester)
 
 # Collapse
-dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,sum,min))
+dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,var,min))
 dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean,min,max))
 names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
 

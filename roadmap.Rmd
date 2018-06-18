@@ -124,7 +124,7 @@ $$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens 
 
 À partir disso criamos estatíticas:
 
-$$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H(x)=(h_1(x),h_2(x),...,h_P(x))$ é um vetor com entradas $h_p: \digamma \to \Upsilon,\ p=\{1,2,...,P\}$ é a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
+$$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H(x)=(h_1(x),h_2(x),...,h_P(x))$ é um vetor com entradas $h_p: \digamma \to \Upsilon,\ p=\{1,2,...,P\}$, a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
 
 Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no período $t$ de cada indíviduo $i$.
 

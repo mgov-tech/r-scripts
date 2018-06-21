@@ -3,38 +3,51 @@ title: "Roadmap IA"
 output: html_notebook
 ---
 
+# Motivação 
+
+Ao revisitar o histórico dos projetos de comunicação e engajamento voltado para a mudança de comportamento e impacto social constatamos que boa parte do impacto real possível não chega aos beneficiários pelo simples fato de existir uma limitaçao na entrega do melhor conteúdo, dada as informações disponíveis e adaptação a novas situações. 
+
+O gráfico abaixo é retirado de um projeto real, em que cada participante foi sorteado para receber 1 de 24 variações possíveis de sequências de mensagens. 
+
+Ao final do projeto, foi calculado: 
+
+1. O impacto da sequência de mensagens que o participante recebeu.
+2. Qual teria sido o impacto se o mesmo participante tivesse recebido cada uma das outras 23 variações de mensagens. 
+
+A partir disso, foi possível identificar qual das 24 sequências geraria o impacto máximo para cada participante e verificar se o participante recebeu a sequência de máximo impacto. Por exemplo, o impacto máximo para o participante $i$ poderia ter sido alcançado se ele tivesse recebido a variação 20, mas ele recebeu na realidade a variação 6. (edited)
+
+O resultado dessa análise está no histograma abaixo, que mostra a proporção de participantes que efetivamente recebeu a sua sequência de máximo impacto. Por exemplo, entre os participantes que receberam a sequência 13, ela também era a sequência de máximo impacto para 30% deles. Isto significa que  os outros 70% poderiam ter seu impacto maximizado se tivessem recebido outra sequência.
+
+![](fig/v_max_h.png) 
+
 # Prova de conceito
 
-Este é o registro dos primeiros passos na construção da prova de conceito utilizando IA. 
-Objetivo: ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
+Nas próximas seções detalharemos os primeiros passos na construção da prova de conceito onde endereçaremos este problema por meio de uma abordagem com Inteligência Artificial. O objetivo em questão é ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
 
 # Introdução
 
-Combinando # de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
+Combinando número de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
 
-```{r}
-library(ggplot2)
-library(waffle)
+![](fig/intro-ia.png) 
 
-parts <- c(`Receberam a mensagem com interação` = (12), `Não receberam a mensagem com interação` = c(12))
-waffle(
-  parts, rows = 2, size = 1, 
-  colors = c("#969696", "#1879bf", "#009bda"), legend_pos = "bottom"
-)
-```
 
 **Importante para o contexto**
 
-As notas são por bimestre ( 3o e 4o bimestre)
-As mensagens são em 'tempo real' durante as semanas 
-Transformamos tudo em semana (Por enquanto não)
+- As notas atualizadas por bimestre (neste caso são 3o e 4o bimestre)
+- As mensagens de interação chegam numa frequência semanal 
+
+
+```
+Importante: devemos nos próximos passos, transformamos tudo em semana (Por enquanto não)
+```
 
 # 0. Organização dos dados 
 
 Antes de iniciar qualquer análise precisamos organizar nossa base de dados.
-Alguns passos como: 
 
-- Importar a base dta com os dados adminstrativos
+Algumas atividades envolvem: 
+
+- Importar a base `dta` com os dados adminstrativos
 - Fazer correções de nomes nas colunas 
 - Criar as variáveis de tratamento
 - Ler as mensagems SMS 
@@ -126,6 +139,8 @@ $$ f(i,r)=F(m_{i, r \ \in \ t}) $$, onde $m_{i, r \ \in \ t}$ são as mensagens 
 
 $$ I(i,r) = H(f_{i,r \ \in \ t}),$$ $r=tempo \ real$, onde $H(x)=(h_1(x),h_2(x),...,h_P(x))$ é um vetor com entradas $h_p: \digamma \to \Upsilon,\ p=\{1,2,...,P\}$, a função que leva do conjunto $\digamma$, que contém as features das mensagens do indivíduo $i$ em $r_1,r_2,...,r_q \ \in \ t$, ao conjunto $\Upsilon$ de estatísticas das features para cada $i$ em $t$ . A função $h_p()$ pode ser: média, mínimo, máximo, mediana, varíancia.
 
+Em outras palavras: a idea é que a função $H(x)$ transforme vetores, que são as features das mensagens de cada indivíduo, em escalares, que são as estatísticas (média, máximo, etc.) definidas por nós.
+
 Terminamos com $P$ estatísticas $I_p(i,t)$ para cada feature de mensagens no período $t$ de cada indíviduo $i$.
 
 $$I_p(i,t)$$
@@ -209,6 +224,7 @@ save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
 
 # 2. Proxy
 
+A ideia é que a proxy seja um indicador de alta frequência para a variação no impacto $\Delta Y_{i,B}$ prevista a partir de variações nas estatísticas $I_p$, que são baseadas nas features as mensagens enviadas pelos usuários. A proxy é estimada pelo método LASSO (Least Absolute Shrinkage and Selection Operator):
 
 $$LASSO: \Delta Y_{i,B}^{Lasso}=g(\Delta I(i,t)) $$, escolhendo $\hat{g}(.)$ que minimize a função perda do Lasso.
 
@@ -300,13 +316,16 @@ save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
 
 ```
 
+![](fig/cvlasso.png) 
 
 
-# 3. Previsão de efeitos heterogêneos sobre dados reais oraculo
+# 3. Previsão de efeitos heterogêneos sobre dados reais (oráculo)
 
 
 $$ OLS: Y_{i,B} = \alpha + \sum_k \beta_{k} * v_{k} + \epsilon_{i,B} $$
 Rodar k regression trees: $$ \hat{\beta}_{k,i} = w_k(C_{i})$$, em que $C_{i}$ sao características da familia e do aluno i preencher $\hat{\beta}_{k,i}$ (k colunas para cada individuo, que seguem as k arvores)
+
+[ppppp]
 
 
 ----------
@@ -476,8 +495,7 @@ for(k in c("","_fit")){
     }
     eval(parse(text=paste0("dataset$",names(groups)[i],"_main_effect",k,"=",groups[[i]][[j]]$main.effect)))
     
-  }
-  
+  }  
 }
 
 main_effect=main_effect[!is.na(main_effect)]
@@ -502,37 +520,34 @@ Dessa maneira, alocamos com maior probabilidade para as variações com maior $\
 # 6. Simulating the gains of AI
 
 
-Computar: \\
+Computar: 
 
-- $$R_{real_{i}} = \hat{\beta}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i)
-- $$R_{proxy_i} = \hat{\gamma}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
-- $$R_{proxy_{i}}^{MAX} = max_k(\hat{\gamma}_i)$$ (isto é, o retorno máximo previsto para o aluno i)
+ $$R_{real_{i}} = \hat{\beta}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+ $$R_{real_{i}}^{MAX} = max_k(\hat{\beta}_{k,i})$$ (isto é, o retorno máximo previsto para o aluno i)
+ $$R_{proxy_i} = \hat{\gamma}_i$$ (isto é, o retorno previsto pela variação que o aluno i de fato recebeu)
+ $$R_{proxy_{i}}^{MAX} = max_k(\hat{\gamma}_i)$$ (isto é, o retorno máximo previsto para o aluno i)
 Computar também:
-- $$\Delta_{oracle}^{ign} = mean_{i}(R_{real_{i}}^{MAX} - R_{real_i})$$
+ $$\Delta_{oracle}^{ign} = mean_{i}(R_{real_{i}}^{MAX} - R_{real_i})$$
 "A média do máximo que poderia ser ganho de impacto, comparando com o impacto previsto do que cada um estava recebendo na real"
 
-- $$\Delta_{oracle}^{OLS} = mean_{i}(R_{real_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
+ $$\Delta_{oracle}^{OLS} = mean_{i}(R_{real_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
 "A média do méximo que poderia ser ganho de impacto, comparando com o impacto previsto que cada teria se recebesse a variação com a máxima média"
 
-- $$\Delta_{AI}^{ign} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{real_i})$$
+ $$\Delta_{AI}^{ign} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{real_i})$$
 "A média do que poderia ser ganho de impacto usando proxies e randomizer, comparando com o impacto previsto do que cada um estava recebendo na real"
 
-- $$\Delta_{AI}^{OLS} = mean_{i}(R_{proxy_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
+ $$\Delta_{AI}^{OLS} = mean_{i}(R_{proxy_{i}}^{MAX} - \max_k{\mathbb{E}_i[\hat{\beta_{k}}])}$$
 "A média do que poderia ser ganho de impacto usando proxies e randomizer,  comparando com o impacto previsto que cada teria se recebesse a variacao com a máxima média"
 
 Simulação:
 
-Usamos as probabilidades geradas acima para realocar as alunas para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, usando as formulas acima, podemos estimar qual seria o ganho de ter realocado os alunos usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
+Usamos as probabilidades geradas acima para realocar as alunas para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, usando as formulas acima, podemos estimar qual seria o ganho de ter realocado os alunos
  
-- $$\Delta_{proxy} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{proxy_{i}})$$
+ $$\Delta_{proxy} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{proxy_{i}})$$
 
-- $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
+ $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy)
 
 # 7. How well does AI approximate the potential gains?
 
-- $Predictedimpact_t,B = mean_i(PostLASSO_i,t,B - PostLASSO_0,t,B)$, em que Post_LASSO_0,t,B considera que não houve nenhuma interação no período (imagino que isso deveria ser codificado como ZERO para todas as variáveis do feature selection space)
+(impactcom.shinyapps.io/dashboard/)[impactcom.shinyapps.io/dashboard/]
 
-
-```{r}
-```

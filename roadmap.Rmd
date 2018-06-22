@@ -26,7 +26,7 @@ Nas próximas seções detalharemos os primeiros passos na construção da prova
 
 # Introdução
 
-Combinando número de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
+As variações (v1, v2, v3, ...) surgem são recortes do número de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
 
 ![](fig/intro-ia.png) 
 
@@ -341,6 +341,12 @@ $$ Y_{i,B} = \alpha + \beta_{k} * v_{k} + \epsilon_{i,B} $$
 
 Assim terminamos com: $$ \hat{\beta}_{k,i} = w_k(C_{i})$$, em que $C_{i}$ sao características da familia e do aluno i. 
 
+Para cada uma das 12 variações, conseguimos ter as características que são as mais preditivas de impactos heterogêneos.
+
+![](fig/v23.png) 
+
+
+
 ----------
 
 # 4. Previsão de efeitos heterogêneos sobre a proxy
@@ -522,9 +528,14 @@ save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_fina
 ![](fig/v23_fit.png) 
 
 
+```
+A partir das árvores, sabemos que determinados perfis se beneficiam mais de determinados tipos de comunicação. 
+```
+
+
 # 5. Randomizer 
 
-Para podermos realocar aos alunos em novas variações, usamos o vetor de probabilidade com K entradas em que cada entrada k é:
+Para podermos realocar aos participantes em novas variações, usamos o vetor de probabilidade com K entradas em que cada entrada k é:
 
 $$P_{i,k,B+1} = \frac{e^{\hat{\gamma}_{k,i}}}{\sum_{j}e^\hat{\gamma_{j,i}}}$$
 
@@ -572,11 +583,13 @@ A média do que poderia ser ganho de impacto usando proxies e randomizer,  compa
 
 **Simulação**
 
-Usamos as probabilidades geradas acima para realocar os participantes para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, usando as fórmulas acima, podemos estimar qual seria o ganho de ter realocado os alunos usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
+Usamos as probabilidades geradas acima para realocar os participantes para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, aplicando as fórmulas descritas anteriormente, podemos estimar qual seria o ganho de ter realocado os alunos usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
  
  $$\Delta_{proxy} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{proxy_{i}})$$
 
-$$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impacto que poderia ser obtido pela proxy) 
+$$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ 
+
+% do ganho de impacto que poderia ser obtido pela proxy 
 
 | Variável | Resultado |
 |---|---|
@@ -584,7 +597,11 @@ $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$ (% do ganho de impac
 | $\Delta_{oracle}^{OLS}$  | 0.02236305 |    
 | Qualidade  |  0.02593589 |  
 
-# 7. How well does AI approximate the potential gains?
+
+# 7 O quão bom são os ganhos aproximados de IA se comparado com os ganhos pontenciais?  
+
+Ainda há espaço para melhorias. Autalmente os ganhos da AI comparado com os ganhos potenciais são baixos. 
+
 
 (impactcom.shinyapps.io/dashboard/)[impactcom.shinyapps.io/dashboard/]
 

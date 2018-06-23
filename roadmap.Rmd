@@ -5,9 +5,10 @@ output: html_notebook
 
 # Motivação 
 
-Ao revisitar o histórico dos projetos de comunicação e engajamento voltado para a mudança de comportamento e impacto social constatamos que boa parte do impacto real possível não chega aos beneficiários pelo simples fato de existir uma limitaçao na entrega do melhor conteúdo, dada as informações disponíveis e adaptação a novas situações. 
 
-O gráfico abaixo é retirado de um projeto real, em que cada participante foi sorteado para receber 1 de 24 variações possíveis de sequências de mensagens. 
+Ao revisitar o histórico dos nossos projetos, que usam mensagens SMS e conceitos da economia comportamental para provocar mudança de comportamento e assim gerar impacto social, constatamos que boa parte do impacto que potencialmente conseguiríamos causar não chega aos beneficiários, pelo simples fato de existir uma limitaçao de não sabermos qual é o melhor conteúdo que devemos enviar, e qual a melhor forma de entregá-lo (que dia e horário? Usar linguagem formal ou informal? Mandar 1 ou 2 mensagens por semana?), dada as informações disponíveis e adaptação a novas situações. 
+
+Para ilustrar este impacto potencial que estamos deixando de entregar, temos o gráfico abaixo, que foi retirado de um projeto real, em que cada participante foi sorteado para receber 1 de 24 variações possíveis de sequências de mensagens SMS. 
 
 Ao final do projeto, foi calculado: 
 
@@ -16,29 +17,33 @@ Ao final do projeto, foi calculado:
 
 A partir disso, foi possível identificar qual das 24 sequências geraria o impacto máximo para cada participante e verificar se o participante recebeu a sequência de máximo impacto. Por exemplo, o impacto máximo para o participante $i$ poderia ter sido alcançado se ele tivesse recebido a variação 20, mas ele recebeu na realidade a variação 6.
 
-O resultado dessa análise está no histograma abaixo, que mostra a proporção de participantes que efetivamente recebeu a sua sequência de máximo impacto. Por exemplo, entre os participantes que receberam a sequência 6, ela também era a sequência de máximo impacto para 30% deles. Isto significa que  os outros 70% poderiam ter seu impacto maximizado se tivessem recebido outra sequência.
+O resultado dessa análise está no histograma, que mostra a proporção de participantes que efetivamente recebeu a sua sequência de máximo impacto. Por exemplo, entre os participantes que receberam a sequência 6, ela também era a sequência de máximo impacto para 30% deles. Isto significa que  os outros 70% poderiam ter seu impacto maximizado se tivessem recebido outra sequência.
 
-![](fig/v_max_h.png) 
+![](fig/v_max_h.png)
 
 # Prova de conceito
 
-Nas próximas seções detalharemos os primeiros passos na construção da prova de conceito onde endereçaremos este problema por meio de uma abordagem com Inteligência Artificial. O objetivo em questão é ter um indicador de alta frequencia (proxy) para prever variação no impacto a partir das caracteristicas específicas nas interações recebidas pelos participantes do Eduq+
+Nas próximas seções detalharemos os primeiros passos na construção da prova de conceito onde endereçaremos este problema por meio de uma abordagem com Inteligência Artificial. O objetivo em questão é usar uma informação valiosa que temos, que são as respostas que os participantes nos enviam em SMS, para construir um indicador de alta frequencia (proxy) que vai prever variações no impacto que estamos provocando. Com esse indicador, a ideia é que consigamos avaliar com alta frequência qual é o impacto que cada forma/conteúdo/linguagem de uma mensagem está provocando, e assim ir corrigindo o curso para conseguir entregar para cada perfil de participante o tipo de comunicação de maior impacto.
+
+Nesta prova de conceito, usaremos dados reais de um projeto do Eduq+, nossa trilha de conteúdo para apoiar o engajamento de famílias na vida escolar dos alunos. O impacto das mensagens foi medido como aumento na nota de matemática.
 
 # Introdução
 
-As variações (v1, v2, v3, ...) surgem são recortes do número de mensagens (1, 2 ou 3 por semana), presença de interatividade (sim ou não), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao)
+Como mencionado acima, neste projeto os participantes poderiam receber uma dentre 24 versões de sequências de mensagens. As 24 versões (v1, v2, v3, ...) surgem como recortes de três tipos de variações: presença de um pergunta de interatividade (sim ou não), número de mensagens enviadas (1, 2 ou 3 por semana), horário de entrega (tarde ou noite) e consistência do horário de entrega (sim ou nao). 
+
+Como precisamos das informações de respostas às interações, vamos deixar de fora todos os participantes que receberam alguma das 12 versões em que não havia perguntas de interação.
 
 ![](fig/intro-ia.png) 
 
 
 **Importante para o contexto**
 
-- As notas atualizadas por bimestre (neste caso são 3o e 4o bimestre)
+- As notas de matemática tem frequência bimestral (neste caso, são as notas do 3o e 4o bimestre)
 - As mensagens de interação chegam numa frequência semanal 
 
 
 ```
-No momento, estamos estimando um modelo só, pro bimestre mas é importante desenvolver, como próximos passos, devemos estimar um modelo para cada semana.
+No momento, estamos estimando por meio de um único modelo, por bimestre. É importante avaliar, como próximo passo, diferentes modelos (estimadores) para cada semana.
 ```
 
 # 0. Organização dos dados 
@@ -227,12 +232,12 @@ save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
 
 ```
 
-Na próxima seção iremos aplicar um algorimo (Lasso) oara entender se as variações em características dessas mensagens são boas previsoras de variações em efeito em nota (i.e., se delta proxy consegue prever $\Delta Y{}$).
+Na próxima seção iremos aplicar um algorimo (Lasso) para entender se as variações em características dessas mensagens são boas previsoras de variações em efeito em nota (i.e., se delta proxy consegue prever $\Delta Y{}$).
 
 # 2. Proxy
 
 ```
-Fundamental na análises é olhar deltas, e não níveis
+Para as análises é importante considerar os deltas, e não níveis.
 ```
 
 A ideia é que a proxy seja um indicador de alta frequência para a variação no impacto $\Delta Y_{i,B}$ prevista a partir de variações nas estatísticas $I_p$, que são baseadas nas features as mensagens enviadas pelos usuários. A proxy é estimada pelo método LASSO (Least Absolute Shrinkage and Selection Operator). 
@@ -341,11 +346,11 @@ $$ Y_{i,B} = \alpha + \beta_{k} * v_{k} + \epsilon_{i,B} $$
 
 Assim terminamos com: $$ \hat{\beta}_{k,i} = w_k(C_{i})$$, em que $C_{i}$ sao características da familia e do aluno i. 
 
-Para cada uma das 12 variações, conseguimos ter as características que são as mais preditivas de impactos heterogêneos.
+Para cada uma das 12 variações, conseguimos ter as características que são as mais preditivas de impactos heterogêneos. 
+
+Um exemplo é a árvore abaixo.
 
 ![](fig/v23.png) 
-
-
 
 ----------
 
@@ -525,13 +530,14 @@ main_effect_fit=main_effect_fit[!is.na(main_effect_fit)]
 save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_final.RData"))
 ```
 
+Um exemplo é a árvore abaixo.
+
 ![](fig/v23_fit.png) 
 
 
 ```
 A partir das árvores, sabemos que determinados perfis se beneficiam mais de determinados tipos de comunicação. 
 ```
-
 
 # 5. Randomizer 
 
@@ -583,7 +589,7 @@ A média do que poderia ser ganho de impacto usando proxies e randomizer,  compa
 
 **Simulação**
 
-Usamos as probabilidades geradas acima para realocar os participantes para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, aplicando as fórmulas descritas anteriormente, podemos estimar qual seria o ganho de ter realocado os alunos usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
+Usamos as probabilidades geradas acima para realocar os participantes para uma nova variação a cada semana. À partir disso, recalculamos qual seria o impacto gerado e, aplicando as fórmulas descritas anteriormente, podemos estimar qual seria o ganho de ter realocado os participantes usando as previsões geradas pela proxy, pelos efeitos previstos $\hat{\gamma}_{k,i}$ e pela probabilidade de realocação $P_{i,k,B+1}$. 
  
  $$\Delta_{proxy} = mean_{i}(R_{proxy_{i}}^{MAX} - R_{proxy_{i}})$$
 
@@ -600,8 +606,7 @@ $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$
 
 # 7 O quão bom são os ganhos aproximados de IA se comparado com os ganhos pontenciais?  
 
-Ainda há espaço para melhorias. Autalmente os ganhos da AI comparado com os ganhos potenciais são baixos. 
+Ainda há espaço para melhorias. Autalmente os ganhos da AI comparado com os ganhos potenciais são baixos e como próximo passo estamos fazendo alterações nos modelos. Conteúdo que será tratado na próxima edicação deste notebook
 
 
-(impactcom.shinyapps.io/dashboard/)[impactcom.shinyapps.io/dashboard/]
 

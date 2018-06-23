@@ -96,21 +96,23 @@ save(DELTA_AI,file=paste0(data.path,"delta_ai.R"))
 
 Delta_ai_ign=mean(DELTA_AI[,1])
 Delta_ai_ols=mean(DELTA_AI[,2])
+delta_ai=data.frame(est=c(DELTA_AI[,1],DELTA_AI[,2]),model=c(rep("ign",length(DELTA_AI[,1])),rep("ols",length(DELTA_AI[,2]))))
 
 quality=Delta_ai_ign/Delta_oracle_ign
 print(quality)
 
 # Graphs
 
-ggplot(data=as.data.frame(DELTA_AI),aes(V1)) + 
+ggplot(data=delta_ai,aes(est)) + 
   geom_histogram() +
   xlab("Delta_AI") +
   ggtitle("Distribution of Delta_AI (N = 1000)") +
+  facet_grid(.~model, scales = "free") +
   theme_minimal()
 ggsave(paste0(fig.path,"delta_ai_dist.png"))
 
 table = dataset %>% 
-  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all==R_oracle_max_all,na.rm = T)/length(R_oracle_max_all))
+  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all==R_oracle_max_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
 
 ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
   geom_col() +

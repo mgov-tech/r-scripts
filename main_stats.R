@@ -73,13 +73,16 @@ prob=exp(main_effect_fit)/sum(exp(main_effect_fit))
 
 ### Simulation
 
+
 cores=detectCores()
 cl <- makeCluster(cores[1]-1)
 registerDoParallel(cl)
 
 weeks=8
 
-DELTA_AI <- foreach(i=1:1000, .combine=rbind) %dopar% {
+M=1000
+
+DELTA_AI <- foreach(i=1:M, .combine=rbind) %dopar% {
   
   rea=matrix(sample(names(prob),size=nrow(dataset)*weeks,replace=T,prob=prob),nrow(dataset),weeks)
   
@@ -92,21 +95,26 @@ DELTA_AI <- foreach(i=1:1000, .combine=rbind) %dopar% {
   
 }
 stopCluster(cl)
-save(DELTA_AI,file=paste0(data.path,"delta_ai.R"))
+save(DELTA_AI,file=paste0(data.path,"delta_ai.RData"))
 
+load(paste0(data.path,"delta_ai.RData"))
 Delta_ai_ign=mean(DELTA_AI[,1])
 Delta_ai_ols=mean(DELTA_AI[,2])
-delta_ai=data.frame(est=c(DELTA_AI[,1],DELTA_AI[,2]),model=c(rep("ign",length(DELTA_AI[,1])),rep("ols",length(DELTA_AI[,2]))))
+delta_ai=data.frame(mean=c(rep(Delta_ai_ign,length(DELTA_AI[,1])),rep(Delta_ai_ols,length(DELTA_AI[,2]))),est=c(DELTA_AI[,1],DELTA_AI[,2]),model=c(rep("Ignorance",length(DELTA_AI[,1])),rep("OLS",length(DELTA_AI[,2]))))
 
 quality=Delta_ai_ign/Delta_oracle_ign
-print(quality)
+
+delta_ai_text=delta_ai %>% group_by(model) %>% summarise(mean=unique(mean))
 
 # Graphs
 
 ggplot(data=delta_ai,aes(est)) + 
   geom_histogram() +
+  geom_vline(aes(xintercept=mean), color="firebrick4", linetype = "longdash") +
+  geom_text(data = delta_ai_text,aes(x=mean, label=paste0(" Mean = ",round(mean,3)), y=-5, hjust="left", family="Times"), color="firebrick4", angle=0, size=4) +
   xlab("Delta_AI") +
-  ggtitle("Distribution of Delta_AI (N = 1000)") +
+  ylab(paste0("Frequence (per ",M,")")) +
+  ggtitle(paste0("Distribution of Delta_AI (Number of simulations = ",M,")")) +
   facet_grid(.~model, scales = "free") +
   theme_minimal()
 ggsave(paste0(fig.path,"delta_ai_dist.png"))

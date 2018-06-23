@@ -3,7 +3,6 @@
 config.R 
 data/
 data
-fig/
 data-*
 .dta
 .xlsx

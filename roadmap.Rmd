@@ -33,6 +33,7 @@ Como mencionado acima, neste projeto os participantes poderiam receber uma dentr
 
 Como precisamos das informações de respostas às interações, vamos deixar de fora todos os participantes que receberam alguma das 12 versões em que não havia perguntas de interação.
 
+
 ![](fig/intro-ia.png) 
 
 

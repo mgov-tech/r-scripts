@@ -341,7 +341,6 @@ Como as caracteristicas desta prova de conceito permitem analisar os resultados 
 
 Para estimar os efeitos em diferentes grupos, estimamos $K$ árvores seguindo: 
 
-$$ \beta_{i,k} = \mathbb{E}[Y_i(1)-Y_i(0) | X_i=x] $$
 $$ Y_{i,B} = \alpha + \beta_{k} * v_{k} + \epsilon_{i,B} $$
 
 Assim terminamos com: $$ \hat{\beta}_{k,i} = w_k(C_{i})$$, em que $C_{i}$ sao características da familia e do aluno i. 

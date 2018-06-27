@@ -3,6 +3,7 @@
 config.R 
 data/
 data
+bases/
 data-*
 .dta
 .xlsx

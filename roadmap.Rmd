@@ -19,7 +19,7 @@ A partir disso, foi possível identificar qual das 24 sequências geraria o impa
 
 O resultado dessa análise está no histograma, que mostra a proporção de participantes que efetivamente recebeu a sua sequência de máximo impacto. Por exemplo, entre os participantes que receberam a sequência 6, ela também era a sequência de máximo impacto para 30% deles. Isto significa que  os outros 70% poderiam ter seu impacto maximizado se tivessem recebido outra sequência.
 
-![](fig/v_max_h.png)
+![](fig/v_max.png)
 
 # Prova de conceito
 
@@ -33,7 +33,7 @@ Como mencionado acima, neste projeto os participantes poderiam receber uma dentr
 
 Como precisamos das informações de respostas às interações, vamos deixar de fora todos os participantes que receberam alguma das 12 versões em que não havia perguntas de interação.
 
-![](fig/intro-ia.png) 
+
 
 
 **Importante para o contexto**
@@ -332,7 +332,7 @@ save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
 
 ```
 
-![](fig/cvlasso.png) 
+![](fig/cvlasso.png)
 
 
 # 3. Previsão de efeitos heterogêneos sobre dados reais (oráculo)
@@ -602,10 +602,23 @@ $$QUALITY^{OLS} = \Delta_{AI}^{OLS}/\Delta_{oracle}^{OLS}$$
 | $\Delta_{oracle}^{OLS}$  | 0.02236305 |    
 | Qualidade  |  0.02593589 |  
 
+Distribuição do Delta_AI a partir das simulações para além de média.
+
+![](fig/histo1.png)
+
+
+*Conclusões & Próximos passos* 
+
+- Sabemos que há espaço, não detectamos que mudanças significativas dadas as característias das mensagens nas interações 
+- Mesmo com diferentes estratégias na técnica (aumento das variáveis do feature space, uso de random forest) os resultados se mantiverem similares
+- Iremos aprofundar as discussões sobre as mensagens dos projetos 
+
 
 # 7 O quão bom são os ganhos aproximados de IA se comparado com os ganhos pontenciais?  
 
 Ainda há espaço para melhorias. Autalmente os ganhos da AI comparado com os ganhos potenciais são baixos e como próximo passo estamos fazendo alterações nos modelos. Conteúdo que será tratado na próxima edicação deste notebook
+
+
 
 
 

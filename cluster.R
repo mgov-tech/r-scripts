@@ -21,13 +21,13 @@ db.cluster=db.cluster[,sapply(db.cluster,var,na.rm=T)!=0]
 cluster.vars=intersect(names(db.cluster),cluster.vars)
 
 # Drop missing obs'
-db.cluster=db.cluster[complete.cases(db.cluster),]
+db.cluster=db.cluster[complete.cases(db.cluster[,cluster.vars]),]
 
 # Compute principal component
 db.cluster.pc = prcomp(db.cluster[,cluster.vars], center = FALSE, scale. = FALSE)$x %>% as.data.frame()
 
 # Fit a random forest for clusters
-rf.fit = randomForest(x = db.cluster, y = NULL, ntree = 10000, proximity = TRUE, oob.prox = TRUE)
+rf.fit = randomForest(x = db.cluster[,cluster.vars], y = NULL, ntree = 100, proximity = TRUE, oob.prox = TRUE)
 hclust.rf = hclust(as.dist(1-rf.fit$proximity), method = "ward.D2")
 
 # Prune trees for the number of groups

@@ -45,20 +45,7 @@ mjs_plot(db.cluster.pc, x=PC1, y=PC2) %>%
   mjs_point(color_accessor=rf.clusters) %>%
   mjs_labs(x="principal comp 1", y="principal comp 2")
 
-# Word Cloud
-
-# corpus = Corpus(VectorSource(paste0(db[db.cluster.pc$rf.clusters==1,]$answer,collapse=" ")))
-# 
-# corpus = tm_map(corpus, PlainTextDocument)
-# 
-# corpus = tm_map(corpus, removePunctuation)
-# corpus = tm_map(corpus, removeWords, stopwords('portuguese'))
-# 
-# corpus = tm_map(corpus, stemDocument, 'portuguese')
-# 
-# wordcloud(corpus, max.words = 25, random.order = FALSE)
-
-# Statistics
+## Statistics
 
 # Select variables for table
 vars=paste0(c("nchar","nword","long","ans.yes"),"_mean")
@@ -79,6 +66,18 @@ for(i in 1:nrow(table)){
 # Merge with sms data
 db.sms=merge(db.sms,db.cluster[,c("phone","bimester","rf.clusters")],by=c("phone","bimester"))
 
+## Word Cloud
+
+corpus = Corpus(VectorSource(paste0(db.sms[db.sms$rf.clusters==3,]$answer,collapse=" ")))
+
+corpus = tm_map(corpus, PlainTextDocument)
+
+corpus = tm_map(corpus, removePunctuation)
+corpus = tm_map(corpus, removeWords, stopwords('portuguese'))
+
+corpus = tm_map(corpus, stemDocument, 'portuguese')
+
+wordcloud(corpus, max.words = 25, random.order = FALSE)
 
 
 

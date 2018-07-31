@@ -8,7 +8,6 @@ options(scipen=999)
 
 # Source personal configurations
 source('config.R')
-fig.path=paste0(main.path,"fig/")
 
 # Outcomes
 
@@ -62,9 +61,9 @@ set.seed(1234)
 cvlasso=cv.glmnet(x,y,nfolds=10)
 
 # Save plot
-#png(filename=paste0(fig.path,"cvlasso.png"))
+png(filename=paste0(fig.path,"cvlasso.png"))
 plot(cvlasso)
-#dev.off()
+dev.off()
 
 # Get proxy
 

@@ -129,7 +129,15 @@ ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
   theme_minimal()
 ggsave(paste0(fig.path,"v_max.png"))
 
+table = dataset %>% 
+  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_max_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
 
+ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
+  geom_col() +
+  xlab("Variation") +
+  ylab("Proportion") +
+  theme_minimal()
+ggsave(paste0(fig.path,"v_max.png"))
 
 
 

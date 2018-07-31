@@ -32,6 +32,15 @@ if(T){
 
 dataset.rf=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 
+# Residualize data
+
+for(i in lasso.vars){
+ 
+  fmla.r=as.formula(paste0(i,"~0|bimester"))
+  dataset.rf[,i]=resid(felm(fmla.r,data=dataset.rf)) 
+  
+}
+
 # Train
 
 fmla=as.formula(paste0(chosen.outcome,"~",paste0(lasso.vars,collapse="+")))

@@ -81,6 +81,13 @@ ncol.oldvars=ncol(db.sms)
 db.sms$nchar=nchar(db.sms$answer)
 db.sms[is.na(db.sms$nchar),]$nchar=0
 
+# Number of words
+db.sms$nword=sapply(db.sms$answer,function(str) sum(sapply(attr(gregexpr("[[:alpha:]]+", str)[[1]],"match.length"), function(x) sum(x > 0))))
+         
+# Long Words
+           
+db.sms$long=sapply(db.sms$answer,function(str) sum(sapply(attr(gregexpr("[[:alpha:]]+", str)[[1]],"match.length"), function(x) sum(x > 3))))
+
 # Punctuation
 #db.sms$punct=grepl("[[:punct:]]",db.sms$answer)
 
@@ -130,12 +137,27 @@ names(dataset)[names(dataset)=="t"]="bimester"
 db.sms$bimester=ifelse(db.sms$week%in%1:9,3,NA)
 db.sms$bimester=ifelse(db.sms$week%in%10:18,4,db.sms$bimester)
 
+db.sms$monthb=ifelse(db.sms$week%in%1:4,1,NA)
+db.sms$monthb=ifelse(db.sms$week%in%5:9,2,db.sms$monthb)
+db.sms$monthb=ifelse(db.sms$week%in%10:13,1,db.sms$monthb)
+db.sms$monthb=ifelse(db.sms$week%in%14:18,2,db.sms$monthb)
+
 # Collapse
+
+# Old version - with variables by bimester
+
 dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,var,min))
 dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean,min,max))
 names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
-
 dataset.sms=left_join(dataset.sms,dataset.sms.week)
+
+# New version - data by month (or week)
+
+# dataset.sms=db.sms[db.sms$bimester%in%c(3,4),] %>% group_by(phone,bimester,monthb) %>% summarise_at(c(created.vars),funs(mean,max,min))
+# 
+# dt.sms=dataset.sms[,c(1,2,3,4,23,24,43,44,length(dataset.sms))]
+# setDT(dataset.sms)
+# dataset.sms = dcast(dataset.sms, phone + bimester ~ monthb, value.var = names(dataset.sms)[!names(dataset.sms)%in%c("phone","bimester","week","monthb")])
 
 # Merge dataset1 and db.sms
 
@@ -147,6 +169,7 @@ lasso.vars=grep(paste0(c(created.vars,"week"),collapse="|"),names(dataset),value
 
 # Interactions
 
+if(F){
 list.lasso.vars=list()
 K=length(lasso.vars)
 n.sup.triangle=(((K-1)*K)/2)+K
@@ -168,14 +191,15 @@ for(i in 1:length(list.lasso.vars)){
 }
 
 lasso.vars=grep(paste0(lasso.vars,collapse="|"),names(dataset),value=T)
+}
 
 dataset = dataset %>% mutate_at(lasso.vars,funs(replace(., which(is.na(.)), 0)))
 dataset[dataset$eduq_feed%in%c(9),lasso.vars]=NA
 
+# 
+
 # Create characteristics variable
 
 save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
-
-
 
 

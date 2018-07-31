@@ -4,31 +4,50 @@ library(tm)
 library(SnowballC)
 library(wordcloud)
 
+# Load data
+
 load(paste0(data.path,"dataset.RData"))
 
+# Variables for cluster
 cluster.vars=lasso.vars
 
-db.scale=dataset[,lasso.vars]
+# Create dataframe with data
+db.cluster=dataset[,c("phone","bimester",cluster.vars)]
 
-db.scale=db.scale[,sapply(db.scale,var,na.rm=T)!=0]
-db.scale=db.scale[complete.cases(db.scale),]
+# Drop zero variance variables
+db.cluster=db.cluster[,sapply(db.cluster,var,na.rm=T)!=0]
 
-db.scale.pc = prcomp(db.scale, center = FALSE, scale. = FALSE)$x %>% as.data.frame()
+# Update cluster.vars
+cluster.vars=intersect(names(db.cluster),cluster.vars)
 
-rf.fit = randomForest(x = db.scale, y = NULL, ntree = 10000, proximity = TRUE, oob.prox = TRUE)
+# Drop missing obs'
+db.cluster=db.cluster[complete.cases(db.cluster),]
+
+# Compute principal component
+db.cluster.pc = prcomp(db.cluster[,cluster.vars], center = FALSE, scale. = FALSE)$x %>% as.data.frame()
+
+# Fit a random forest for clusters
+rf.fit = randomForest(x = db.cluster, y = NULL, ntree = 10000, proximity = TRUE, oob.prox = TRUE)
 hclust.rf = hclust(as.dist(1-rf.fit$proximity), method = "ward.D2")
-rf.cluster = cutree(hclust.rf, k=3)
-db.scale.pc$rf.clusters = rf.cluster
-db.scale$rf.clusters=rf.cluster
-table(rf.cluster, db$bimester)
 
-mjs_plot(db.scale.pc, x=PC1, y=PC2) %>%
+# Prune trees for the number of groups
+rf.cluster = cutree(hclust.rf, k=3)
+
+# Attach groups to exisiting dataframes
+db.cluster.pc$rf.clusters = rf.cluster
+db.cluster$rf.clusters=rf.cluster
+
+# Table of groups per bimester
+table(rf.cluster, db.cluster$bimester)
+
+# Graph groups by principal component 1 and 2
+mjs_plot(db.cluster.pc, x=PC1, y=PC2) %>%
   mjs_point(color_accessor=rf.clusters) %>%
   mjs_labs(x="principal comp 1", y="principal comp 2")
 
 # Word Cloud
 
-# corpus = Corpus(VectorSource(paste0(db[db.scale.pc$rf.clusters==1,]$answer,collapse=" ")))
+# corpus = Corpus(VectorSource(paste0(db[db.cluster.pc$rf.clusters==1,]$answer,collapse=" ")))
 # 
 # corpus = tm_map(corpus, PlainTextDocument)
 # 
@@ -41,19 +60,24 @@ mjs_plot(db.scale.pc, x=PC1, y=PC2) %>%
 
 # Statistics
 
+# Select variables for table
 vars=paste0(c("nchar","nword","long","ans.yes"),"_mean")
+
+# Number of groups
 ngroup=3
 
+# Create table
 table=data.frame(var=as.character(rep(vars,ngroup)),group=rep(1:ngroup,each=length(vars)), estat=NA)
 table$var=as.character(table$var)
 
 for(i in 1:nrow(table)){
   
- table[i,]$estat=mean(db.scale[db.scale$rf.clusters==table[i,]$group,table[i,]$var])
+ table[i,]$estat=mean(db.cluster[db.cluster$rf.clusters==table[i,]$group,table[i,]$var])
   
 }
 
-
+# Merge with sms data
+db.sms=merge(db.sms,db.cluster[,c("phone","bimester","rf.clusters")],by=c("phone","bimester"))
 
 
 

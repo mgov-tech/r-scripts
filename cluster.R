@@ -31,7 +31,7 @@ rf.fit = randomForest(x = db.cluster[,cluster.vars], y = NULL, ntree = 100, prox
 hclust.rf = hclust(as.dist(1-rf.fit$proximity), method = "ward.D2")
 
 # Prune trees for the number of groups
-rf.cluster = cutree(hclust.rf, k=3)
+rf.cluster = cutree(hclust.rf, k=4)
 
 # Attach groups to exisiting dataframes
 db.cluster.pc$rf.clusters = rf.cluster
@@ -51,7 +51,7 @@ mjs_plot(db.cluster.pc, x=PC1, y=PC2) %>%
 vars=paste0(c("nchar","nword","long","ans.yes"),"_mean")
 
 # Number of groups
-ngroup=3
+ngroup=4
 
 # Create table
 table=data.frame(var=as.character(rep(vars,ngroup)),group=rep(1:ngroup,each=length(vars)), estat=NA)
@@ -68,7 +68,7 @@ db.sms=merge(db.sms,db.cluster[,c("phone","bimester","rf.clusters")],by=c("phone
 
 ## Word Cloud
 
-corpus = Corpus(VectorSource(paste0(db.sms[db.sms$rf.clusters==3,]$answer,collapse=" ")))
+corpus = Corpus(VectorSource(paste0(db.sms[db.sms$rf.clusters==4,]$answer,collapse=" ")))
 
 corpus = tm_map(corpus, PlainTextDocument)
 

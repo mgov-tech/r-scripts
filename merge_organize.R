@@ -115,6 +115,9 @@ db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
 # sinais de discordância
 db.sms$ans.no=ifelse(grepl("*não*",db.sms$answer,ignore.case = T)==T,1,0)
 
+# cancelling words
+db.sms$ans.cancel=ifelse(grepl("*sair*|*cancelar*",db.sms$answer,ignore.case = T)==T,1,0)
+
 # outras ideias 
 db.sms$ans.math=ifelse(grepl("*matematica*",db.sms$answer,ignore.case = T)==T,1,0)
 db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T,1,0)

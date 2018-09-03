@@ -83,49 +83,52 @@ db.sms[is.na(db.sms$nchar),]$nchar=0
 
 # Number of words
 db.sms$nword=sapply(db.sms$answer,function(str) sum(sapply(attr(gregexpr("[[:alpha:]]+", str)[[1]],"match.length"), function(x) sum(x > 0))))
-         
+db.sms[is.na(db.sms$nword),]$nword=0
+
 # Long Words
-           
+
 db.sms$long=sapply(db.sms$answer,function(str) sum(sapply(attr(gregexpr("[[:alpha:]]+", str)[[1]],"match.length"), function(x) sum(x > 3))))
+db.sms[is.na(db.sms$long),]$long=0
 
 # Punctuation
 #db.sms$punct=grepl("[[:punct:]]",db.sms$answer)
 
 # Lower case
-db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
+#db.sms$lower=ifelse(!grepl("[[:lower:]]",db.sms$answer)==T,1,0)
 
 # sinal de genero
-db.sms$ans.boy=ifelse(grepl("*filho*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.girl=ifelse(grepl("*filha*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.boy=ifelse(grepl("*filho*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.girl=ifelse(grepl("*filha*",db.sms$answer,ignore.case = T)==T,1,0)
 
 # sinais de concordancia 
-db.sms$ans.cool=ifelse(grepl("*legal*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.thank=ifelse(grepl("*obrigado*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.thank1=ifelse(grepl("*obg*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.sure=ifelse(grepl("*com certeza*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.truth=ifelse(grepl("*verdade*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.cool=ifelse(grepl("*legal*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.thank=ifelse(grepl("*obrigado*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.thank1=ifelse(grepl("*obg*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.sure=ifelse(grepl("*com certeza*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.truth=ifelse(grepl("*verdade*",db.sms$answer,ignore.case = T)==T,1,0)
 
 # sinais de afeto
-db.sms$ans.affection=ifelse(grepl("*carinho*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.love=ifelse(grepl("*amo*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.love1=ifelse(grepl("*ama*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.friends=ifelse(grepl("*amizade*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.affection=ifelse(grepl("*carinho*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.love=ifelse(grepl("*amo*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.love1=ifelse(grepl("*ama*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.friends=ifelse(grepl("*amizade*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.feel=ifelse(grepl("*sentir*",db.sms$answer,ignore.case = T)==T,1,0)
 
 # sinais de discordância
-db.sms$ans.no=ifelse(grepl("*não*",db.sms$answer,ignore.case = T)==T,1,0)
+#db.sms$ans.no=ifelse(grepl("*não*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# outras ideias 
+# db.sms$ans.math=ifelse(grepl("*matematica*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.dream=ifelse(grepl("*sonho*",db.sms$answer,ignore.case = T)==T,1,0)
+# db.sms$ans.dream1=ifelse(grepl("*escola*",db.sms$answer,ignore.case = T)==T,1,0)
+
+# Presence of SIM/NAO
+db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
+#db.sms$ans.no=ifelse(grepl("*nao*",db.sms$answer,ignore.case = T)==T,1,0)
 
 # cancelling words
 db.sms$ans.cancel=ifelse(grepl("*sair*|*cancelar*",db.sms$answer,ignore.case = T)==T,1,0)
-
-# outras ideias 
-db.sms$ans.math=ifelse(grepl("*matematica*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.activity=ifelse(grepl("*atividade*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.dream=ifelse(grepl("*sonho*",db.sms$answer,ignore.case = T)==T,1,0)
-db.sms$ans.dream1=ifelse(grepl("*escola*",db.sms$answer,ignore.case = T)==T,1,0)
-
-# Presence of "SIM"
-db.sms$ans.yes=ifelse(grepl("*sim*",db.sms$answer,ignore.case = T)==T,1,0)
 
 # Keep created variables
 created.vars=names(db.sms)[(ncol.oldvars+1):ncol(db.sms)]
@@ -149,10 +152,10 @@ db.sms$monthb=ifelse(db.sms$week%in%14:18,2,db.sms$monthb)
 
 # Old version - with variables by bimester
 
-dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean,max,var,min))
-dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean,min,max))
-names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
-dataset.sms=left_join(dataset.sms,dataset.sms.week)
+dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars,"week"),funs(mean))
+# dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean))
+# names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
+# dataset.sms=left_join(dataset.sms,dataset.sms.week)
 
 # New version - data by month (or week)
 
@@ -173,27 +176,27 @@ lasso.vars=grep(paste0(c(created.vars,"week"),collapse="|"),names(dataset),value
 # Interactions
 
 if(F){
-list.lasso.vars=list()
-K=length(lasso.vars)
-n.sup.triangle=(((K-1)*K)/2)+K
-
-k=1
-for(i in 1:length(lasso.vars)){
-  for(j in i:length(lasso.vars)){
+  list.lasso.vars=list()
+  K=length(lasso.vars)
+  n.sup.triangle=(((K-1)*K)/2)+K
+  
+  k=1
+  for(i in 1:length(lasso.vars)){
+    for(j in i:length(lasso.vars)){
+      
+      list.lasso.vars[[k]]=c(lasso.vars[i],lasso.vars[j])
+      k=k+1
+      
+    }
+  }
+  
+  for(i in 1:length(list.lasso.vars)){
     
-    list.lasso.vars[[k]]=c(lasso.vars[i],lasso.vars[j])
-    k=k+1
+    dataset[,paste0(list.lasso.vars[[i]],collapse="X")]=dataset[,list.lasso.vars[[i]][1]]*dataset[,list.lasso.vars[[i]][2]]
     
   }
-}
-
-for(i in 1:length(list.lasso.vars)){
-
-  dataset[,paste0(list.lasso.vars[[i]],collapse="X")]=dataset[,list.lasso.vars[[i]][1]]*dataset[,list.lasso.vars[[i]][2]]
   
-}
-
-lasso.vars=grep(paste0(lasso.vars,collapse="|"),names(dataset),value=T)
+  lasso.vars=grep(paste0(lasso.vars,collapse="|"),names(dataset),value=T)
 }
 
 dataset = dataset %>% mutate_at(lasso.vars,funs(replace(., which(is.na(.)), 0)))
@@ -203,6 +206,7 @@ dataset[dataset$eduq_feed%in%c(9),lasso.vars]=NA
 
 # Create characteristics variable
 
-save(dataset,lasso.vars,file=paste0(data.path,"dataset.RData"))
+save(dataset,lasso.vars,created.vars,file=paste0(data.path,"dataset.RData"))
+save(db.sms,file=paste0(data.path,"dbsms.RData"))
 
 

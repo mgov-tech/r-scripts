@@ -23,10 +23,19 @@ if(T){
   }
 }
 
-# Read data
+# Load data
 
 load(paste0(data.path,"dataset.RData"))
+load(paste0(data.path,"dbsms.RData"))
+
+# Drop missing
 dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
+
+# Drop cancel
+dataset.lasso=dataset.lasso[dataset.lasso$ans.cancel==0,]
+
+# Drop never interacted
+dataset.lasso=dataset.lasso[rowSums(dataset.lasso[,lasso.vars]==0)<length(lasso.vars),]
 
 # Keep variables without residualization for prediction
 x.old=as.matrix(dataset.lasso[,lasso.vars])
@@ -79,9 +88,5 @@ dataset=dataset[!is.na(dataset[,chosen.outcome]),]
 
 # Save datasets for trees
 
+save(cvlasso,file=paste0(data.path,"cvlasso.RData"))
 save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
-
-
-
-
-

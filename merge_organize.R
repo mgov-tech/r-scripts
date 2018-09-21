@@ -152,7 +152,7 @@ db.sms$monthb=ifelse(db.sms$week%in%14:18,2,db.sms$monthb)
 
 # Old version - with variables by bimester
 
-dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars,"week"),funs(mean))
+dataset.sms=db.sms %>% group_by(phone,bimester) %>% summarise_at(c(created.vars),funs(mean))
 # dataset.sms.week=db.sms %>% group_by(phone,bimester) %>% summarise_at("week",funs(mean))
 # names(dataset.sms.week)[-c(1,2)]=paste0("week_",names(dataset.sms.week)[-c(1,2)])
 # dataset.sms=left_join(dataset.sms,dataset.sms.week)

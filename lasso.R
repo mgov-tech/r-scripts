@@ -52,11 +52,15 @@ resid.fe=function(z){
 fix.effect=dataset.lasso$bimester
 
 if(T){
-  x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
   y=resid.fe(dataset.lasso[,chosen.outcome])
 } else {
-  x=as.matrix(dataset.lasso[,lasso.vars])
   y=dataset.lasso[,chosen.outcome]
+}
+
+if(F){
+  x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
+} else {
+  x=as.matrix(dataset.lasso[,lasso.vars])
 }
 
 # Estimation
@@ -88,5 +92,5 @@ dataset=dataset[!is.na(dataset[,chosen.outcome]),]
 
 # Save datasets for trees
 
-save(cvlasso,file=paste0(data.path,"cvlasso.RData"))
+save(cvlasso,lasso.vars,file=paste0(data.path,"cvlasso.RData"))
 save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))

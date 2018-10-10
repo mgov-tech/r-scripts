@@ -135,23 +135,31 @@ ggplot(data=delta_ai,aes(est)) +
   theme_minimal()
 ggsave(paste0(fig.path,"delta_ai_dist.png"))
 
-table = dataset %>% 
+table = dataset[dataset$treat_cod!=25,] %>% 
   group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_max_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
 
-ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
+ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
   geom_col() +
   xlab("Variation") +
   ylab("Proportion") +
+  scale_fill_manual(breaks=c(1,2,3), label=c("1 - Small", "2 - Medium", "3 - Large"), name="# SMS", values=c("brown","royalblue","yellow2"), aesthetics = "fill") +
+  scale_colour_manual(breaks=c(1,2), label=c("Yes", "No"), name="Working Hours", values=c("palegreen","black"), guide = guide_legend(override.aes=aes(fill=NA))) +
+  scale_alpha_manual(values=c(1, 0.3), name = "Feedback", label=c("Yes","No"), breaks=c(1,2)) +
+  scale_linetype_manual(name="Alternating", breaks=c(1,2), label=c("Solid - Yes","Dashed - No"), values=c("solid","dashed"), guide = guide_legend(override.aes=aes(fill=NA))) +
   theme_minimal()
 ggsave(paste0(fig.path,"v_max.png"))
 
 table = dataset %>% 
   group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
 
-ggplot(data=table, aes(x=as.factor(treat_cod),y=p)) +
+ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
   geom_col() +
   xlab("Variation") +
   ylab("Proportion") +
+  scale_fill_manual(breaks=c(1,2,3), label=c("1 - Small", "2 - Medium", "3 - Large"), name="# SMS", values=c("brown","royalblue","yellow2"), aesthetics = "fill") +
+  scale_colour_manual(breaks=c(1,2), label=c("Yes", "No"), name="Working Hours", values=c("palegreen","black"), guide = guide_legend(override.aes=aes(fill=NA))) +
+  scale_alpha_manual(values=c(1, 0.3), name = "Feedback", label=c("Yes","No"), breaks=c(1,2)) +
+  scale_linetype_manual(name="Alternating", breaks=c(1,2), label=c("Solid - Yes","Dashed - No"), values=c("solid","dashed"), guide = guide_legend(override.aes=aes(fill=NA))) +
   theme_minimal()
 ggsave(paste0(fig.path,"v_mean.png"))
 

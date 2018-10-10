@@ -92,7 +92,6 @@ for(k in c("","_fit")){
   
   fmla=paste0(chosen.outcome,k," ~ parda + parda_resp + preta + preta_resp + mae + renda_1SM + renda_1a3SM + educ_EM + educ_baixa + menina + idade_resp")
   
-  
   for(i in treat){
     
     dt.temp=dataset[!is.na(dataset[,i]),]
@@ -101,7 +100,7 @@ for(k in c("","_fit")){
                       data = dt.temp, treatment = dt.temp[,i],
                       split.Rule = "TOT", 
                       cv.option = "fit", 
-                      minsize = 30,  
+                      minsize = 10,  
                       cv.Honest = T, 
                       split.Bucket = T, 
                       xval = 10, 
@@ -160,7 +159,7 @@ for(k in c("","_fit")){
 main_effect=main_effect[!is.na(main_effect)]
 main_effect_fit=main_effect_fit[!is.na(main_effect_fit)]
 
-save(dataset,main_effect,main_effect_fit,groups,file=paste0(data.path,"data_final.RData"))
+save(dataset,main_effect,main_effect_fit,groups,feat.select,file=paste0(data.path,"data_final.RData"))
 
 
 

@@ -35,7 +35,7 @@ dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 dataset.lasso=dataset.lasso[dataset.lasso$ans.cancel==0,]
 
 # Drop never interacted
-dataset.lasso=dataset.lasso[rowSums(dataset.lasso[,lasso.vars]==0)<length(lasso.vars),]
+#dataset.lasso=dataset.lasso[rowSums(dataset.lasso[,lasso.vars]==0)<length(lasso.vars),]
 
 # Keep variables without residualization for prediction
 x.old=as.matrix(dataset.lasso[,lasso.vars])
@@ -60,7 +60,7 @@ if(T){
 if(F){
   x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
 } else {
-  x=as.matrix(dataset.lasso[,lasso.vars])
+  x=x.old
 }
 
 # Estimation
@@ -93,4 +93,4 @@ dataset=dataset[!is.na(dataset[,chosen.outcome]),]
 # Save datasets for trees
 
 save(cvlasso,lasso.vars,file=paste0(data.path,"cvlasso.RData"))
-save(dataset.lasso,dataset,file=paste0(data.path,"data_tree.RData"))
+save(dataset.lasso,dataset,feat.select,file=paste0(data.path,"data_tree.RData"))

@@ -55,6 +55,16 @@ dataset=dataset[dataset$R_proxy_max!=-Inf,]
 dataset$R_oracle_max_all=apply(dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),invert=T,fixed=T,value=T)],1,max)
 
 x=dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),fixed=T,value=T,invert=T)]
+x=x[,substring(names(x), 0, nchar(names(x))-13)%in%treat]
+
+dataset$v_max_all=substring(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))], 0, nchar(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))])-13)
+
+x=dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),fixed=T,value=T,invert=T)]
+x=x[,substring(names(x), 0, nchar(names(x))-13)%in%treat]
+
+dataset$v_max_all=substring(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))], 0, nchar(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))])-13)
+
+x=dataset[,grep("_fit",grep("group_effect",names(dataset),fixed=T,value=T),fixed=T,value=T,invert=T)]
 x=x[,substring(names(x), 0, nchar(names(x))-13)%in%treat.fit]
 
 dataset$v_max=substring(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))], 0, nchar(names(x)[(apply(x,1,max,na.rm=T)==x)%*%(1:length(names(x)))])-13)
@@ -124,21 +134,15 @@ delta_ai_text=delta_ai %>% group_by(model) %>% summarise(mean=unique(mean))
 
 # Graphs
 
-ggplot(data=delta_ai,aes(est)) + 
-  geom_histogram() +
-  geom_vline(aes(xintercept=mean), color="firebrick4", linetype = "longdash") +
-  geom_text(data = delta_ai_text,aes(x=mean, label=paste0(" Mean = ",round(mean,3)), y=-5, hjust="left", family="Times"), color="firebrick4", angle=0, size=4) +
-  xlab("Delta_AI") +
-  ylab(paste0("Frequence (per ",M,")")) +
-  ggtitle(paste0("Distribution of Delta_AI (Number of simulations = ",M,")")) +
-  facet_grid(.~model, scales = "free") +
-  theme_minimal()
-ggsave(paste0(fig.path,"delta_ai_dist.png"))
+table = dataset[dataset$treat_cod!=25 & !is.na(dataset$v_max_all),] %>% 
+  group_by(v_max_all) %>% dplyr::summarise(p=length(v_max_all)/nrow(dataset[dataset$treat_cod!=25 & !is.na(dataset$v_max_all),]))
 
-table = dataset[dataset$treat_cod!=25,] %>% 
-  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_max_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
+table$treat_cod=as.numeric(substring(table$v_max_all,2,3))
+table=rbind(table,data.frame(treat_cod=setdiff(1:24,table$treat_cod), v_max_all=paste0("v",setdiff(1:24,table$treat_cod)), p=0))
 
-ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
+table=merge(table,dataset[,c("treat_cod","eduq_freq","eduq_time","eduq_time_altern","eduq_feed")]%>%group_by(treat_cod)%>%dplyr::summarise(freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed)),all.x=T, by="treat_cod")
+
+ggplot(data=table, aes(x=factor(x=substring(v_max_all,2,3), levels=paste0(1:24)),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
   geom_col() +
   xlab("Variation") +
   ylab("Proportion") +
@@ -149,19 +153,62 @@ ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= 
   theme_minimal()
 ggsave(paste0(fig.path,"v_max.png"))
 
-table = dataset %>% 
-  group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
+dataset$diff=(dataset$R_oracle_max_all-dataset$R_oracle_all)/sd(dataset[,chosen.outcome],na.rm=T)
 
-ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
-  geom_col() +
-  xlab("Variation") +
-  ylab("Proportion") +
-  scale_fill_manual(breaks=c(1,2,3), label=c("1 - Small", "2 - Medium", "3 - Large"), name="# SMS", values=c("brown","royalblue","yellow2"), aesthetics = "fill") +
-  scale_colour_manual(breaks=c(1,2), label=c("Yes", "No"), name="Working Hours", values=c("palegreen","black"), guide = guide_legend(override.aes=aes(fill=NA))) +
-  scale_alpha_manual(values=c(1, 0.3), name = "Feedback", label=c("Yes","No"), breaks=c(1,2)) +
-  scale_linetype_manual(name="Alternating", breaks=c(1,2), label=c("Solid - Yes","Dashed - No"), values=c("solid","dashed"), guide = guide_legend(override.aes=aes(fill=NA))) +
+ggplot(data=dataset, aes(diff)) +
+  geom_histogram(bins=60) +
+  labs(x=expression(frac(V["max"] - V["real"], sigma["outcome"]) )) +
+  ylab("Count") +
   theme_minimal()
-ggsave(paste0(fig.path,"v_mean.png"))
+ggsave(paste0(fig.path,"hist_v.png"))
+
+ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat)) +
+  geom_jitter(width=0.0) +
+  geom_smooth(method='lm',formula=y~x) +
+  labs(y="Predicted",x="Real") +
+  theme_minimal()
+ggsave(paste0(fig.path,"binscatter.png"))
+
+# Trash
+
+# ggplot(data=delta_ai,aes(est)) + 
+#   geom_histogram() +
+#   geom_vline(aes(xintercept=mean), color="firebrick4", linetype = "longdash") +
+#   geom_text(data = delta_ai_text,aes(x=mean, label=paste0(" Mean = ",round(mean,3)), y=-5, hjust="left", family="Times"), color="firebrick4", angle=0, size=4) +
+#   xlab("Delta_AI") +
+#   ylab(paste0("Frequence (per ",M,")")) +
+#   ggtitle(paste0("Distribution of Delta_AI (Number of simulations = ",M,")")) +
+#   facet_grid(.~model, scales = "free") +
+#   theme_minimal()
+# ggsave(paste0(fig.path,"delta_ai_dist.png"))
+# 
+# table = dataset[dataset$treat_cod!=25,] %>% 
+#   group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_max_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
+# 
+# ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
+#   geom_col() +
+#   xlab("Variation") +
+#   ylab("Proportion") +
+#   scale_fill_manual(breaks=c(1,2,3), label=c("1 - Small", "2 - Medium", "3 - Large"), name="# SMS", values=c("brown","royalblue","yellow2"), aesthetics = "fill") +
+#   scale_colour_manual(breaks=c(1,2), label=c("Yes", "No"), name="Working Hours", values=c("palegreen","black"), guide = guide_legend(override.aes=aes(fill=NA))) +
+#   scale_alpha_manual(values=c(1, 0.3), name = "Feedback", label=c("Yes","No"), breaks=c(1,2)) +
+#   scale_linetype_manual(name="Alternating", breaks=c(1,2), label=c("Solid - Yes","Dashed - No"), values=c("solid","dashed"), guide = guide_legend(override.aes=aes(fill=NA))) +
+#   theme_minimal()
+# ggsave(paste0(fig.path,"v_max.png"))
+# 
+# table = dataset[dataset$treat_cod!=25,] %>% 
+#   group_by(treat_cod) %>% dplyr::summarise(p=sum(R_oracle_group_all>=R_oracle_all,na.rm = T)/length(R_oracle_max_all),freq=unique(eduq_freq),time=unique(eduq_time),time_altern=unique(eduq_time_altern),feed=unique(eduq_feed))
+# 
+# ggplot(data=table, aes(x=as.factor(treat_cod),y=p, fill=as.factor(freq), color= as.factor(time), linetype= as.factor(time_altern), alpha=as.factor(feed))) +
+#   geom_col() +
+#   xlab("Variation") +
+#   ylab("Proportion") +
+#   scale_fill_manual(breaks=c(1,2,3), label=c("1 - Small", "2 - Medium", "3 - Large"), name="# SMS", values=c("brown","royalblue","yellow2"), aesthetics = "fill") +
+#   scale_colour_manual(breaks=c(1,2), label=c("Yes", "No"), name="Working Hours", values=c("palegreen","black"), guide = guide_legend(override.aes=aes(fill=NA))) +
+#   scale_alpha_manual(values=c(1, 0.3), name = "Feedback", label=c("Yes","No"), breaks=c(1,2)) +
+#   scale_linetype_manual(name="Alternating", breaks=c(1,2), label=c("Solid - Yes","Dashed - No"), values=c("solid","dashed"), guide = guide_legend(override.aes=aes(fill=NA))) +
+#   theme_minimal()
+# ggsave(paste0(fig.path,"v_mean.png"))
 
 
 

@@ -100,7 +100,7 @@ for(k in c("","_fit")){
                       data = dt.temp, treatment = dt.temp[,i],
                       split.Rule = "TOT", 
                       cv.option = "fit", 
-                      minsize = 10,  
+                      minsize = 30,  
                       cv.Honest = T, 
                       split.Bucket = T, 
                       xval = 10, 
@@ -135,21 +135,23 @@ for(k in c("","_fit")){
     
     if(k!="_fit"){
       main_effect[i]=groups[[i]][[1]]$main.effect
-
+      
     } else {
       main_effect_fit[i]=groups[[i]][[1]]$main.effect
-
+      
     }
     
   }
   
   for(i in seq_along(groups)){
-    
-    for(j in seq_along(groups[[i]])){
-      if(!is.null(groups[[i]][[j]]$conds)){
+    if(!is.null(groups[[i]][[1]]$conds)){
+      for(j in seq_along(groups[[i]])){
         eval(parse(text=paste0("dataset$",names(groups[i]),"_group_effect",k,"=","ifelse(",paste0("dataset$",groups[[i]][[j]]$conds,collapse="&"),",",groups[[i]][[j]]$group.effect,",","dataset$",names(groups[i]),"_group_effect",k,")")))
       }
+    } else {
+      eval(parse(text=paste0("dataset$",names(groups[i]),"_group_effect",k,"=",groups[[i]][[j]]$main.effect))) 
     }
+    
     eval(parse(text=paste0("dataset$",names(groups)[i],"_main_effect",k,"=",groups[[i]][[j]]$main.effect)))
     
   }

@@ -155,14 +155,24 @@ ggsave(paste0(fig.path,"v_max.png"))
 
 dataset$diff=(dataset$R_oracle_max_all-dataset$R_oracle_all)/sd(dataset[,chosen.outcome],na.rm=T)
 
-ggplot(data=dataset, aes(diff)) +
-  geom_histogram(bins=60) +
+ggplot(data=dataset[dataset$diff>=0,], aes(diff)) +
+  geom_histogram(bins=50, aes(y = ..density..)) +
   labs(x=expression(frac(V["max"] - V["real"], sigma["outcome"]) )) +
-  ylab("Count") +
+  ylab("Frequency (%)") +
+  scale_y_continuous(labels = percent_format()) +
   theme_minimal()
 ggsave(paste0(fig.path,"hist_v.png"))
 
-ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat)) +
+resid.fe=function(z){
+  reg=felm(z ~ 0 | fix.effect)
+  resid=reg$resid
+  return(resid) 
+}
+fix.effect=dataset$bimester
+
+dataset[,paste0(chosen.outcome,"_delta")]=resid.fe(dataset[,chosen.outcome])
+
+ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat_delta)) +
   geom_jitter(width=0.0) +
   geom_smooth(method='lm',formula=y~x) +
   labs(y="Predicted",x="Real") +

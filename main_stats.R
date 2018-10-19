@@ -12,6 +12,7 @@ library(ggExtra)
 
 # Source personal configurations
 source('config.R')
+source('binscatter.R')
 
 # Load data
 
@@ -175,9 +176,8 @@ fix.effect=dataset$phone
 
 dataset[,paste0(chosen.outcome,"_delta")]=resid.fe(dataset[,chosen.outcome])
 
-p <- ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat_delta)) +
-  geom_jitter(width=0.0) +
-  geom_smooth(method='lm',formula=y~x) +
+p <- binscatter(formula=paste0(paste0(chosen.outcome,"_fit"),"~",paste0(chosen.outcome,"_delta")), key_var = paste0(chosen.outcome,"_delta"),
+           data=dataset, bins=10, partial=FALSE) +
   labs(y="Predicted",x="Real") +
   theme_minimal()
 p <- ggMarginal(p, type = "histogram")

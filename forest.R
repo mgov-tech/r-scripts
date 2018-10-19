@@ -30,13 +30,13 @@ if(T){
 
 # Make forest
 
-dataset.rf=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
+dataset.rf=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars,"treat_cod")]),]
 
 # Residualize data
 
 for(i in lasso.vars){
  
-  fmla.r=as.formula(paste0(i,"~0|bimester"))
+  fmla.r=as.formula(paste0(i,"~0|treat_cod"))
   dataset.rf[,i]=resid(felm(fmla.r,data=dataset.rf)) 
   
 }

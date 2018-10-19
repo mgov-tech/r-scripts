@@ -32,7 +32,7 @@ load(paste0(data.path,"dbsms.RData"))
 dataset.lasso=dataset[complete.cases(dataset[,c(chosen.outcome,lasso.vars)]),]
 
 # Drop cancel
-dataset.lasso=dataset.lasso[dataset.lasso$ans.cancel==0,]
+# dataset.lasso=dataset.lasso[dataset.lasso$ans.cancel==0,]
 
 # Drop never interacted
 #dataset.lasso=dataset.lasso[rowSums(dataset.lasso[,lasso.vars]==0)<length(lasso.vars),]
@@ -49,7 +49,7 @@ resid.fe=function(z){
   return(resid) 
 }
 
-fix.effect=dataset.lasso$bimester
+fix.effect=dataset.lasso$phone
 
 if(T){
   y=resid.fe(dataset.lasso[,chosen.outcome])
@@ -57,7 +57,7 @@ if(T){
   y=dataset.lasso[,chosen.outcome]
 }
 
-if(F){
+if(T){
   x=as.matrix(apply(dataset.lasso[,lasso.vars], 2, resid.fe))
 } else {
   x=x.old

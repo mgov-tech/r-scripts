@@ -68,7 +68,7 @@ db.sms=merge(db.sms,db.cluster[,c("phone","bimester","rf.clusters")],by=c("phone
 
 ## Word Cloud
 
-corpus = Corpus(VectorSource(paste0(db.sms[db.sms$rf.clusters==4,]$answer,collapse=" ")))
+corpus = Corpus(VectorSource(paste0(db.sms[db.sms$rf.clusters==3,]$answer,collapse=" ")))
 
 corpus = tm_map(corpus, PlainTextDocument)
 

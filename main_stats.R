@@ -6,7 +6,9 @@ library(doParallel)
 library(dplyr)
 library(ggplot2)
 library(ggthemes)
+library(scales)
 library(lfe)
+library(ggExtra)
 
 # Source personal configurations
 source('config.R')
@@ -160,6 +162,7 @@ ggplot(data=dataset[dataset$diff>=0,], aes(diff)) +
   labs(x=expression(frac(V["max"] - V["real"], sigma["outcome"]) )) +
   ylab("Frequency (%)") +
   scale_y_continuous(labels = percent_format()) +
+  scale_x_continuous(breaks=seq(0,1,0.2)) +
   theme_minimal()
 ggsave(paste0(fig.path,"hist_v.png"))
 
@@ -168,16 +171,17 @@ resid.fe=function(z){
   resid=reg$resid
   return(resid) 
 }
-fix.effect=dataset$bimester
+fix.effect=dataset$phone
 
 dataset[,paste0(chosen.outcome,"_delta")]=resid.fe(dataset[,chosen.outcome])
 
-ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat_delta)) +
+p <- ggplot(data=dataset, aes(y=boletim_mat_fit,x=boletim_mat_delta)) +
   geom_jitter(width=0.0) +
   geom_smooth(method='lm',formula=y~x) +
   labs(y="Predicted",x="Real") +
   theme_minimal()
-ggsave(paste0(fig.path,"binscatter.png"))
+p <- ggMarginal(p, type = "histogram")
+ggsave(filename=paste0(fig.path,"binscatter.png"), plot=p)
 
 # Trash
 

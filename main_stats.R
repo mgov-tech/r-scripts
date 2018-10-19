@@ -15,7 +15,7 @@ source('config.R')
 
 # Load data
 
-load(paste0(data.path,"data_final.RData"))
+load(paste0(data.path,"data_final_cf.RData"))
 
 # Outcomes
 outcomes = c("boletim_mat","perc_freq_mat","boletim_lp","perc_freq_lp")
